@@ -241,6 +241,7 @@ span{
 }
 .portfolio-box:hover .portfolio-layer{
     transform: translateY(0);
+    cursor:pointer;
 }
 .portfolio-layer h4{
     font-size: 3rem;
