@@ -8,6 +8,7 @@
     <title>Portfolio</title>
 </head>
 <body>
+    
     <header class="header">
         <a href="#" class="logo">Portfolio</a>
         <i class="fa-solid fa-bars" id="menu-icon"></i>
@@ -26,12 +27,12 @@
             <h3>And I'm a <span class="multiple-text"> Developer</span></h3>
             <p>Always eager to take on new challenges, I blend creativity with technical expertise to deliver innovative solutions.</p>
             <div class="social-media">
-                <a href="https://x.com/aryan21515"><i class="fa-brands fa-x-twitter"></i></a>
-                <a href="https://www.linkedin.com/in/aryan-yadav-685440257/"><i class="fa-brands fa-linkedin-in"></i></a>
-                <a href="https://www.facebook.com/profile.php?id=100057058577497"><i class="fa-brands fa-facebook"></i></a>
-                <a href="https://github.com/Sandrocottus1"><i class="fa-brands fa-github"></i></a>
+                <a href="https://x.com/aryan21515"target="_blank"><i class="fa-brands fa-x-twitter"></i></a>
+                <a href="https://www.linkedin.com/in/aryan-yadav-685440257/" target="_blank"><i class="fa-brands fa-linkedin-in"></i></a>
+                <a href="https://www.facebook.com/profile.php?id=100057058577497" target="_blank"><i class="fa-brands fa-facebook"></i></a>
+                <a href="https://github.com/Sandrocottus1"><i class="fa-brands fa-github" target="_blank"></i></a>
             </div>
-            <a href="ARYANYADAV2213158_NITSILCHAR.pdf" download ="ARYANYADAV2213158_NITSILCHAR.pdf" class="btn">Download CV</a>
+            <a href="https://drive.google.com/file/d/1POx9Dr2wCVxeU4hiMIEq5Ojs_MPQmbx_/view?usp=sharing" target="_blank" download ="ARYANYADAV2213158_NITSILCHAR.pdf" class="btn">Download CV</a>
         </div>
         <div class="home-img">
             <img src="myimage.jpeg" alt="">
@@ -88,19 +89,11 @@
                     <i class="fa-solid fa-up-right-from-square"></i>
                 </div>
             </div>
-            <div class="portfolio-box">
+            <div class="portfolio-box" id="a2">
                 <img src="3.jpg" alt="">
                 <div class="portfolio-layer">
-                    <h4>Web-Design</h4>
-                    <p>Lorem ipsum dolor sit,amet consectetur adipisicing elit</p>
-                    <i class="fa-solid fa-up-right-from-square"></i>
-                </div>
-            </div>
-            <div class="portfolio-box">
-                <img src="4.jpg" alt="">
-                <div class="portfolio-layer">
-                    <h4>Web-Design</h4>
-                    <p>Lorem ipsum dolor sit,amet consectetur adipisicing elit</p>
+                    <h4>Tinder for Dogs</h4>
+                    <p>TinDog</p>
                     <i class="fa-solid fa-up-right-from-square"></i>
                 </div>
             </div>
@@ -123,7 +116,7 @@
 </section>
 <footer class="footer">
     <div class="footer-text">
-        <p>Copyright &copy; 2024 by @aryanyadav |All RIght Reserved.</p>
+        <p>Copyright &copy; <span id="ye"></span> by @aryanyadav |All RIght Reserved.</p>
 
     </div>
     <div class="footer-iconTop">
@@ -145,6 +138,19 @@
     div.addEventListener('click', function(){
         window.open('https://github.com/Sandrocottus1/Hospitals','_blank');
     });
+    
+</script>
+<script>
+    var div=document.getElementById('a2');
+    div.addEventListener('click', function(){
+        window.open('https://sandrocottus1.github.io/TinDog/','_blank');
+    });
+    
+</script>
+<script>
+    var currYear=new Date().getFullYear();
+    var curr=document.getElementById("ye");
+    curr.textContent=currYear;
 </script>
 </body>
 </html>
