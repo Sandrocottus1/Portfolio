@@ -554,3 +554,34 @@ span{
         width:100%;
     }
 }
+@media screen and (max-width:600px){
+    .timeline{
+        margin:50px auto;
+    }
+    .timeline::after{
+        left:31px;
+    }
+    .contain{
+        width: 100%;
+        padding-left: 80px;
+        padding-right: 25px;
+    }
+    .text-box{
+        font-size: 13px;
+    }
+    .text-box small{
+        margin-bottom: 10px;
+    }
+    .right-contain{
+        left: 0;
+    }
+    .left-contain img,.right-contain  img{
+        position: absolute;
+        left: -90%;
+    }
+    .left-contain-arrow ,.right-contain-arrow{
+        border-right: 15px solid #fff;
+        border-left: 0;
+        left:-15px;
+
+    }
