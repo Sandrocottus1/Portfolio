@@ -51,6 +51,9 @@
 .contain:nth-child(4){
     animation-delay:6s;
 }
+.contain:nth-child(5){
+    animation-delay:8s;
+}
 .text-box{
     padding: 20px 30px;
     background: var(--snd-bg-color);
@@ -98,7 +101,7 @@
     left: 50%;
     margin-left: -3px;
     z-index: -1;
-    animation: moveline 8s linear forwards;
+    animation: moveline 10s linear forwards;
 }
 @keyframes moveline{
     0%{
