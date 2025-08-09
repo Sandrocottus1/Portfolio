@@ -44,9 +44,10 @@ ScrollReveal().reveal('.home-contact h1, .about-img',{origin:'left'});
 ScrollReveal().reveal('.home-contact p, .about-content',{origin:'right'});
 /*-----------type.js------------*/
 const typed=new Typed('.multiple-text',{
-    strings:['Frontend Developer','Web Designer','Developer','Enthusiast'],
+    strings:['Developer','Programmer','Web Designer'],
     typeSpeed:80,
     backSpeed:80,
     backDelay:900,
     loop:true,
+
 });
