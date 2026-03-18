@@ -822,7 +822,7 @@ body.performance-lite .cursor-arrow{
     display: none;
 }
 body.performance-lite .ticker-track{
-    animation: none;
+    animation: tickerMove 46s linear infinite;
 }
 body.performance-lite .home-img img,
 body.performance-lite .availability-dot,
