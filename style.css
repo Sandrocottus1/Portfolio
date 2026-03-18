@@ -255,6 +255,28 @@ html{
     }
 }
 
+@media (hover: hover) and (pointer: fine){
+    body.performance-lite,
+    body.performance-lite a,
+    body.performance-lite button,
+    body.performance-lite .btn,
+    body.performance-lite .services-box,
+    body.performance-lite .project-card,
+    body.performance-lite .social-media a,
+    body.performance-lite input,
+    body.performance-lite textarea,
+    body.performance-lite select,
+    body.performance-lite label,
+    body.performance-lite .theme-btn,
+    body.performance-lite .theme-switcher,
+    body.performance-lite .theme-switcher *,
+    body.performance-lite .perf-btn,
+    body.performance-lite .perf-switcher,
+    body.performance-lite .perf-switcher *{
+        cursor: auto !important;
+    }
+}
+
 body{
     background: radial-gradient(circle at top, #ffffff 0%, #f6f1e8 45%, #efe6d8 100%);
     color:var(--text-color);
