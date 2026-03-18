@@ -3,11 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLJAJ9/2PkPKZ5QiAj6Ta86w+fsb2TkcmfRyVX3pBnMFcV7oQPJkl9QevSCWr3W6A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Portfolio</title>
 </head>
 <body>
+    <div class="cursor-arrow" id="cursor-arrow" aria-hidden="true"></div>
+    <div class="progress-track" aria-hidden="true">
+        <span class="progress-fill" id="scroll-progress"></span>
+    </div>
+    <div class="ambient ambient--one" aria-hidden="true"></div>
+    <div class="ambient ambient--two" aria-hidden="true"></div>
     <header class="header">
         <a href="#" class="logo">Portfolio</a>
         <i class="fa-solid fa-bars" id="menu-icon"></i>
@@ -18,6 +26,11 @@
             <a href="#services">Services</a>
             <a href="#contact">Contact</a>
         </nav>
+        <div class="theme-switcher" aria-label="Visual style switcher">
+            <button class="theme-btn is-active" type="button" data-theme="editorial">Editorial</button>
+            <button class="theme-btn" type="button" data-theme="futuristic">Futuristic</button>
+            <button class="theme-btn" type="button" data-theme="minimal">Minimal</button>
+        </div>
     </header>
     <section class="home" id="home">
         <div class="home-content">
@@ -25,6 +38,24 @@
             <h1>Aryan Yadav</h1>
             <h3>And I'm a <span class="multiple-text"> Competitive Programmer</span></h3>
             <p>I build performance-focused web apps, data products, and AI tools with a clean UX and production-grade engineering.</p>
+            <div class="availability-pill">
+                <span class="availability-dot"></span>
+                Open to internships and high-impact product roles
+            </div>
+            <div class="quick-stats" aria-label="Career highlights">
+                <article>
+                    <strong>6+</strong>
+                    <span>Production projects</span>
+                </article>
+                <article>
+                    <strong>3</strong>
+                    <span>Hackathon / jam participations</span>
+                </article>
+                <article>
+                    <strong>4+</strong>
+                    <span>Stacks used deeply</span>
+                </article>
+            </div>
             <div class="hero-tags">
                 <span>Full-Stack</span>
                 <span>AI/ML</span>
@@ -37,10 +68,29 @@
                 <a href="https://leetcode.com/u/_aryan0205/" target="_blank"><i class="fa-solid fa-code"></i></a>
                 <a href="https://github.com/Sandrocottus1" target="_blank"><i class="fa-brands fa-github"></i></a>
             </div>
-            <a href="https://drive.google.com/file/d/1U1BstafASngOtNQaicO_hqYwbKYLKzCP/view?usp=sharing" target="_blank" download ="ARYANYADAV2213158_NITSILCHAR.pdf" class="btn">Download CV</a>
+            <div class="hero-actions">
+                <a href="https://drive.google.com/file/d/1U1BstafASngOtNQaicO_hqYwbKYLKzCP/view?usp=sharing" target="_blank" download ="ARYANYADAV2213158_NITSILCHAR.pdf" class="btn">Download CV</a>
+                <a href="#portfolio" class="btn btn-outline">Explore Projects</a>
+            </div>
         </div>
         <div class="home-img">
-            <img src="myimage.jpeg" alt="">
+            <img src="meh.jpeg" alt="">
+        </div>
+    </section>
+    <section class="ticker" aria-label="Focus areas">
+        <div class="ticker-track">
+            <span>Secure Systems</span>
+            <span>Realtime Web Apps</span>
+            <span>Applied AI Assistants</span>
+            <span>Competitive Programming</span>
+            <span>Scalable Backend Design</span>
+            <span>High-Performance UX</span>
+            <span>Secure Systems</span>
+            <span>Realtime Web Apps</span>
+            <span>Applied AI Assistants</span>
+            <span>Competitive Programming</span>
+            <span>Scalable Backend Design</span>
+            <span>High-Performance UX</span>
         </div>
     </section>
     <!--about-->
