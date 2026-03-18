@@ -822,7 +822,7 @@ body.performance-lite .cursor-arrow{
     display: none;
 }
 body.performance-lite .ticker-track{
-    animation: tickerMove 46s linear infinite;
+    animation: tickerMove 22s linear infinite;
 }
 body.performance-lite .home-img img,
 body.performance-lite .availability-dot,
@@ -1457,7 +1457,6 @@ body.theme-editorial .project-tags li{
 }
 
 @media (prefers-reduced-motion: reduce){
-    .ticker-track,
     .home-img img,
     .availability-dot,
     .btn::before,
