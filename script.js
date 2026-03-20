@@ -391,7 +391,7 @@ function initializeUtilityTerminal() {
         matches: [],
         index: -1
     };
-    var baseChips = ['help', 'status', 'set theme futuristic', 'set mode lite', 'goto contact', 'neofetch', 'joke'];
+    var baseChips = ['help', 'status', 'set theme futuristic', 'set mode lite', 'goto contact', 'neofetch', 'joke', 'black hole', 'whoami'];
     var currentDir = '~';
     var projectDir = '~/portfolio';
     var projectFiles = {
@@ -614,7 +614,7 @@ function initializeUtilityTerminal() {
             writeLine('[help] set mode <full|balanced|lite>');
             writeLine('[help] goto/go/open/nav <home|about|portfolio|services|contact>');
             writeLine('[help] fs: cd <portfolio|..|~>, ls, pwd, cat/type/file <name>');
-            writeLine('[help] fun: neofetch, joke');
+            writeLine('[help] fun: neofetch, joke, black hole, whoami');
             paintChips(['status', 'themes', 'modes', 'goto portfolio', 'close']);
             return;
         }
@@ -642,10 +642,21 @@ function initializeUtilityTerminal() {
             writeLine(currentDir);
             return;
         }
-        if (command === 'ls') {
+        var lsMatch = command.match(/^ls(?:\s+(-[a-z]+))?$/);
+        if (lsMatch) {
+            var flags = lsMatch[1] || '';
+            var showAll = flags.indexOf('a') !== -1;
             if (currentDir === '~') {
+                if (showAll) {
+                    writeLine('.');
+                    writeLine('..');
+                }
                 writeLine('portfolio/');
             } else {
+                if (showAll) {
+                    writeLine('.');
+                    writeLine('..');
+                }
                 Object.keys(projectFiles).forEach(function(name) {
                     writeLine(name);
                 });
@@ -706,6 +717,26 @@ function initializeUtilityTerminal() {
             ];
             var randomIndex = Math.floor(Math.random() * jokes.length);
             writeLine('[joke] ' + jokes[randomIndex]);
+            return;
+        }
+        if (command === 'black hole') {
+            var quotes = [
+                'A black hole is what happens when space gives up arguing with mass',
+                'A black hole bends reality so hard, even time loses direction.',
+                'You don’t see a black hole—you see everything else trying to avoid it.',
+                'Time slows down due to two things one is if you travel close to SOL and other if the gravitational force is too high due to space-time fabric curvature ,however is it not possible that an object travelling near SOL can wrap space time and hence time slows?'
+            ];
+            var quoteIndex = Math.floor(Math.random() * quotes.length);
+            writeLine('[quote] ' + quotes[quoteIndex]);
+            return;
+        }
+        if (command === 'whoami') {
+            writeLine('user: aryan yadav');
+            writeLine('location: India');
+            writeLine('role: Full Stack Developer');
+            writeLine('passion: Building scalable backends & responsive interfaces');
+            writeLine('github: https://github.com/Sandrocottus1');
+            writeLine('status: Actively seeking opportunities 🚀');
             return;
         }
         if (command.indexOf('set theme ') === 0) {

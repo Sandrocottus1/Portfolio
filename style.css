@@ -536,6 +536,11 @@ body.boot-active .utility-terminal{
 .term-panel-output .error{
     color: #ff9890;
 }
+.term-panel-output .ascii-art{
+    overflow-wrap: normal;
+    word-break: normal;
+    white-space: pre;
+}
 .term-panel-suggestions{
     display: flex;
     flex-wrap: wrap;
