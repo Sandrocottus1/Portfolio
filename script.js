@@ -16,7 +16,6 @@ menuIcon.onclick= ()=>{
     menuIcon.classList.toggle('fa-xmark');
     navbar.classList.toggle('active');
 }
-/*scroll section*/
 /*-----------type.js------------*/
 const typed=new Typed('.multiple-text',{
     strings:['Competitive Programmer','Frontend Developer','Web Designer','Enthusiast'],
@@ -42,7 +41,6 @@ function initializeBootShell() {
     input.focus();
     var history = [];
     var historyIndex = -1;
-    var writeQueue = Promise.resolve();
     var isBusy = false;
     var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var outputQueue = Promise.resolve();
@@ -406,110 +404,6 @@ function initializeUtilityTerminal() {
         contact: 'contact'
     };
 
-    var commandDictionary = [
-        'help',
-        'status',
-        'themes',
-        'modes',
-        'clear',
-        'close',
-        'exit',
-        'set theme editorial',
-        'set theme futuristic',
-        'set theme minimal',
-        'set mode full',
-        'set mode balanced',
-        'set mode lite',
-        'goto home',
-        'goto about',
-        'goto services',
-        'goto portfolio',
-        'goto contact',
-        'go home',
-        'open portfolio',
-        'cd services',
-        'jump to contact',
-        'nav about',
-        'neofetch',
-        'matrix',
-        'joke',
-        'coffee',
-        'sudo hire me -y'
-    ];
-
-    function resetAutoComplete() {
-        autoCompleteState.base = '';
-        autoCompleteState.matches = [];
-        autoCompleteState.index = -1;
-    }
-
-    function clamp(value, min, max) {
-        return Math.max(min, Math.min(max, value));
-    }
-
-    function saveTerminalPosition(left, top) {
-        var payload = { left: Math.round(left), top: Math.round(top) };
-        localStorage.setItem(dragKey, JSON.stringify(payload));
-    }
-
-    function applyTerminalPosition(left, top) {
-        root.style.left = left + 'px';
-        root.style.top = top + 'px';
-        root.style.right = 'auto';
-        root.style.bottom = 'auto';
-    }
-
-    function restoreTerminalPosition() {
-        var saved = localStorage.getItem(dragKey);
-        if (!saved) {
-            return;
-        }
-        try {
-            var parsed = JSON.parse(saved);
-            if (typeof parsed.left !== 'number' || typeof parsed.top !== 'number') {
-                return;
-            }
-            var rootRect = root.getBoundingClientRect();
-            var maxX = Math.max(0, window.innerWidth - rootRect.width - 8);
-            var maxY = Math.max(0, window.innerHeight - 56);
-            applyTerminalPosition(clamp(parsed.left, 8, maxX), clamp(parsed.top, 8, maxY));
-        } catch (err) {
-            localStorage.removeItem(dragKey);
-        }
-    }
-
-    function startDrag(event) {
-        if (event.target === close || close.contains(event.target)) {
-            return;
-        }
-        var rect = root.getBoundingClientRect();
-        dragState.active = true;
-        dragState.offsetX = event.clientX - rect.left;
-        dragState.offsetY = event.clientY - rect.top;
-        root.classList.add('is-dragging');
-    }
-
-    function moveDrag(event) {
-        if (!dragState.active) {
-            return;
-        }
-        var maxX = Math.max(0, window.innerWidth - root.offsetWidth - 8);
-        var maxY = Math.max(0, window.innerHeight - 56);
-        var nextX = clamp(event.clientX - dragState.offsetX, 8, maxX);
-        var nextY = clamp(event.clientY - dragState.offsetY, 8, maxY);
-        applyTerminalPosition(nextX, nextY);
-    }
-
-    function endDrag() {
-        if (!dragState.active) {
-            return;
-        }
-        dragState.active = false;
-        root.classList.remove('is-dragging');
-        var rect = root.getBoundingClientRect();
-        saveTerminalPosition(rect.left, rect.top);
-    }
-
     function resolveSectionToken(token) {
         var normalized = normalize(token);
         return sectionAliases[normalized] || '';
@@ -539,24 +433,13 @@ function initializeUtilityTerminal() {
     }
 
     function writeLine(text, className) {
-        var safeText = text === undefined || text === null ? '' : String(text);
         var row = document.createElement('p');
-        row.textContent = safeText;
+        row.textContent = text;
         if (className) {
             row.classList.add(className);
         }
         output.appendChild(row);
         output.scrollTop = output.scrollHeight;
-        return Promise.resolve();
-    }
-
-    function enqueueWrite(text, className) {
-        writeQueue = writeQueue.catch(function() {
-            return Promise.resolve();
-        }).then(function() {
-            return writeLine(text, className);
-        });
-        return writeQueue;
     }
 
     function paintChips(list) {
@@ -572,74 +455,6 @@ function initializeUtilityTerminal() {
             });
             suggestions.appendChild(chip);
         });
-    }
-
-    function randomInt(max) {
-        return Math.floor(Math.random() * max);
-    }
-
-    function runNeofetch() {
-        enqueueWrite('aryan@portfolio');
-        enqueueWrite('---------------------------');
-        enqueueWrite('Role: Full-stack developer');
-        enqueueWrite('Focus: High-performance apps + AI tools');
-        enqueueWrite('Stack: Node.js | Next.js | Docker | MongoDB');
-        enqueueWrite('Status: open to internships');
-    }
-
-    function runMatrix() {
-        enqueueWrite('[matrix] streaming signal:');
-        for (var i = 0; i < 5; i += 1) {
-            var line = '';
-            for (var j = 0; j < 28; j += 1) {
-                line += randomInt(2);
-            }
-            enqueueWrite(line);
-        }
-    }
-
-    function runJoke() {
-        var jokes = [
-            'I told my code to stop being lazy. It replied: later.',
-            'There are 10 kinds of people: those who understand binary and those who do not.',
-            'My code does not have bugs. It develops random features.'
-        ];
-        enqueueWrite('[joke] ' + jokes[randomInt(jokes.length)]);
-    }
-
-    function runCoffee() {
-        enqueueWrite('  ( (');
-        enqueueWrite('   ) )');
-        enqueueWrite('........');
-        enqueueWrite('|      |]  fuel loaded');
-        enqueueWrite('\\      /');
-        enqueueWrite(' `----\'');
-    }
-
-    function autoCompleteInput(reverse) {
-        var currentValue = normalize(input.value);
-        if (!currentValue) {
-            return;
-        }
-        if (autoCompleteState.base !== currentValue) {
-            autoCompleteState.base = currentValue;
-            autoCompleteState.matches = commandDictionary.filter(function(cmd) {
-                return cmd.indexOf(currentValue) === 0;
-            });
-            autoCompleteState.index = -1;
-        }
-        if (!autoCompleteState.matches.length) {
-            enqueueWrite('[hint] no autocomplete match for "' + currentValue + '"', 'error');
-            return;
-        }
-        if (reverse) {
-            autoCompleteState.index = autoCompleteState.index <= 0
-                ? autoCompleteState.matches.length - 1
-                : autoCompleteState.index - 1;
-        } else {
-            autoCompleteState.index = (autoCompleteState.index + 1) % autoCompleteState.matches.length;
-        }
-        input.value = autoCompleteState.matches[autoCompleteState.index];
     }
 
     function openPanel() {
@@ -681,83 +496,59 @@ function initializeUtilityTerminal() {
         if (!command) {
             return;
         }
-        enqueueWrite('> ' + raw);
+        writeLine('> ' + raw);
 
         if (command === 'help' || command === '?') {
-            enqueueWrite('[help] commands: help, status, clear, close, themes, modes');
-            enqueueWrite('[help] set theme <editorial|futuristic|minimal>');
-            enqueueWrite('[help] set mode <full|balanced|lite>');
-            enqueueWrite('[help] goto/go/open/cd <home|about|portfolio|services|contact>');
-            enqueueWrite('[help] fun: neofetch, joke, matrix, coffee, sudo hire me -y');
+            writeLine('[help] commands: help, status, clear, close, themes, modes');
+            writeLine('[help] set theme <editorial|futuristic|minimal>');
+            writeLine('[help] set mode <full|balanced|lite>');
+            writeLine('[help] goto/go/open/cd <home|about|portfolio|services|contact>');
             paintChips(['status', 'themes', 'modes', 'goto portfolio', 'close']);
             return;
         }
         if (command === 'status') {
-            enqueueWrite('[status] theme=' + getCurrentTheme() + ', mode=' + getPerformanceMode());
+            writeLine('[status] theme=' + getCurrentTheme() + ', mode=' + getPerformanceMode());
             return;
         }
         if (command === 'themes') {
-            enqueueWrite('[themes] editorial, futuristic, minimal');
+            writeLine('[themes] editorial, futuristic, minimal');
             paintChips(['set theme editorial', 'set theme futuristic', 'set theme minimal']);
             return;
         }
         if (command === 'modes') {
-            enqueueWrite('[modes] full, balanced, lite');
+            writeLine('[modes] full, balanced, lite');
             paintChips(['set mode full', 'set mode balanced', 'set mode lite']);
             return;
         }
         if (command === 'clear') {
             output.innerHTML = '';
-            writeQueue = Promise.resolve();
-            enqueueWrite('[ok] terminal cleared');
+            writeLine('[ok] terminal cleared');
             paintChips(baseChips);
             return;
         }
         if (command === 'close' || command === 'exit') {
-            enqueueWrite('[ok] minimizing terminal');
+            writeLine('[ok] minimizing terminal');
             setTimeout(closePanel, 120);
-            return;
-        }
-        if (command === 'neofetch') {
-            runNeofetch();
-            return;
-        }
-        if (command === 'matrix') {
-            runMatrix();
-            return;
-        }
-        if (command === 'joke') {
-            runJoke();
-            return;
-        }
-        if (command === 'coffee') {
-            runCoffee();
-            return;
-        }
-        if (command === 'sudo hire me -y' || command === 'hire me') {
-            enqueueWrite('[ok] request accepted. redirecting recruiter attention...');
-            enqueueWrite('[ok] contact: linkedin.com/in/aryan-yadav-685440257');
-            paintChips(['goto contact', 'status', 'joke']);
             return;
         }
         if (command.indexOf('set theme ') === 0) {
             var theme = normalize(command.replace('set theme ', ''));
             if (theme !== 'editorial' && theme !== 'futuristic' && theme !== 'minimal') {
-                enqueueWrite('[error] invalid theme', 'error');
+                writeLine('[error] invalid theme', 'error');
                 return;
             }
             applyTheme(theme);
-            enqueueWrite('[ok] theme set to ' + theme);
+            writeLine('[ok] theme set to ' + theme);
             return;
         }
         if (command.indexOf('set mode ') === 0) {
             var mode = normalize(command.replace('set mode ', ''));
             if (mode !== 'full' && mode !== 'balanced' && mode !== 'lite') {
-                enqueueWrite('[error] invalid mode', 'error');
+                writeLine('[error] invalid mode', 'error');
                 return;
             }
             applyPerformanceMode(mode);
-            enqueueWrite('[ok] mode set to ' + mode);
+            writeLine('[ok] mode set to ' + mode);
             return;
         }
         var sectionId = extractSection(command);
@@ -765,19 +556,7 @@ function initializeUtilityTerminal() {
             navigateTo(sectionId);
             return;
         }
-        enqueueWrite('[error] unknown command. type help', 'error');
-    }
-
-    function executeInputCommand() {
-        var value = input.value || '';
-        if (!value.trim()) {
-            return;
-        }
-        history.push(value);
-        historyIndex = history.length;
-        handleCommand(value);
-        input.value = '';
-        resetAutoComplete();
+        writeLine('[error] unknown command. type help', 'error');
     }
 
     toggle.addEventListener('click', function() {
@@ -792,18 +571,20 @@ function initializeUtilityTerminal() {
 
     form.addEventListener('submit', function(event) {
         event.preventDefault();
-        executeInputCommand();
+        var value = input.value || '';
+        if (!value.trim()) {
+            return;
+        }
+        history.push(value);
+        historyIndex = history.length;
+        handleCommand(value);
+        input.value = '';
     });
 
     input.addEventListener('keydown', function(event) {
         if (event.key === 'Enter') {
             event.preventDefault();
-            executeInputCommand();
-            return;
-        }
-        if (event.key === 'Tab') {
-            event.preventDefault();
-            autoCompleteInput(event.shiftKey);
+            form.requestSubmit();
             return;
         }
         if (!history.length) {
@@ -821,33 +602,14 @@ function initializeUtilityTerminal() {
         }
     });
 
-    input.addEventListener('input', resetAutoComplete);
-
-    head.addEventListener('mousedown', startDrag);
-    document.addEventListener('mousemove', moveDrag);
-    document.addEventListener('mouseup', endDrag);
-
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape' && !panel.hidden) {
             closePanel();
         }
     });
 
-    window.addEventListener('resize', function() {
-        var rect = root.getBoundingClientRect();
-        if (root.style.left && root.style.top) {
-            var maxX = Math.max(0, window.innerWidth - root.offsetWidth - 8);
-            var maxY = Math.max(0, window.innerHeight - 56);
-            var x = clamp(rect.left, 8, maxX);
-            var y = clamp(rect.top, 8, maxY);
-            applyTerminalPosition(x, y);
-            saveTerminalPosition(x, y);
-        }
-    });
-
-    restoreTerminalPosition();
-    paintChips(baseChips.concat(funChips));
-    enqueueWrite('[hint] use help for commands');
+    paintChips(baseChips);
+    writeLine('[hint] use help for commands');
 }
 
 function initializePerformanceMode() {

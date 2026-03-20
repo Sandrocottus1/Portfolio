@@ -499,11 +499,6 @@ body.boot-active .utility-terminal{
     padding: 0.8rem 1rem;
     background: #101c22;
     border-bottom: 1px solid rgba(86, 247, 192, 0.18);
-    cursor: move;
-}
-.utility-terminal.is-dragging,
-.utility-terminal.is-dragging *{
-    user-select: none;
 }
 .term-panel-head p{
     color: #9fd2d4;
