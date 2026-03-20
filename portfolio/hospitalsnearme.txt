@@ -1,0 +1,3 @@
+HospitalsNearme
+Hospital discovery and slot booking solution built during Smart India Hackathon.
+Repo: https://github.com/Sandrocottus1/Hospitals

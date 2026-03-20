@@ -227,24 +227,6 @@ html{
 }
 
 @media (hover: hover) and (pointer: fine){
-    body{
-        cursor: none;
-    }
-    a,
-    button,
-    .btn,
-    .services-box,
-    .project-card,
-    .social-media a,
-    input,
-    textarea,
-    select,
-    label{
-        cursor: none;
-    }
-}
-
-@media (hover: hover) and (pointer: fine){
     .theme-btn,
     .theme-switcher,
     .theme-switcher *,
@@ -479,13 +461,18 @@ body.boot-active .utility-terminal{
     font-size: 1.2rem;
 }
 .term-panel{
-    width: min(380px, calc(100vw - 2rem));
-    max-height: min(65vh, 460px);
+    width: min(560px, calc(100vw - 2rem));
+    height: min(560px, calc(100vh - 2rem));
+    min-width: 340px;
+    min-height: 320px;
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100vh - 1rem);
     border-radius: 14px;
     border: 1px solid rgba(86, 247, 192, 0.35);
     background: #071015;
     box-shadow: 0 30px 60px rgba(0, 0, 0, 0.38);
     overflow: hidden;
+    resize: both;
     display: grid;
     grid-template-rows: auto minmax(120px, 1fr) auto auto;
 }
@@ -499,6 +486,11 @@ body.boot-active .utility-terminal{
     padding: 0.8rem 1rem;
     background: #101c22;
     border-bottom: 1px solid rgba(86, 247, 192, 0.18);
+    cursor: move;
+}
+.utility-terminal.is-dragging,
+.utility-terminal.is-dragging *{
+    user-select: none;
 }
 .term-panel-head p{
     color: #9fd2d4;
@@ -516,7 +508,8 @@ body.boot-active .utility-terminal{
 }
 .term-panel-output{
     padding: 0.85rem 1rem;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
     display: grid;
     gap: 0.45rem;
 }
@@ -526,6 +519,19 @@ body.boot-active .utility-terminal{
     font-size: 1.2rem;
     font-family: 'IBM Plex Mono', monospace;
     line-height: 1.5;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+.term-panel-output p a{
+    color: #7efbe1;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+.term-panel-output p a:hover{
+    color: #b9fff0;
 }
 .term-panel-output .error{
     color: #ff9890;
@@ -568,54 +574,6 @@ body.boot-active .utility-terminal{
     font-size: 1.15rem;
     font-family: 'IBM Plex Mono', monospace;
 }
-.cursor-arrow{
-    position: fixed;
-    top: 0;
-    left: 0;
-    pointer-events: none;
-    opacity: 0;
-    z-index: 2000;
-    transition: opacity 0.2s ease, transform 0.2s ease;
-}
-.cursor-arrow{
-    width: 30px;
-    height: 44px;
-    background: var(--cursor-color);
-    clip-path: polygon(6% 0, 95% 56%, 56% 56%, 79% 100%, 55% 100%, 36% 66%, 6% 92%);
-    transform: translate(-50%, -50%) rotate(-18deg);
-    filter: drop-shadow(0 0 1px var(--cursor-stroke)) drop-shadow(0 6px 12px rgba(0, 0, 0, 0.35));
-}
-body.cursor-ready .cursor-arrow{
-    opacity: 1;
-}
-body.cursor-native .cursor-arrow{
-    opacity: 0;
-}
-body.cursor-hover .cursor-arrow{
-    transform: translate(-50%, -50%) rotate(-18deg) scale(1.1);
-}
-body.cursor-text .cursor-arrow{
-    width: 7px;
-    height: 36px;
-    clip-path: none;
-    border-radius: 5px;
-    background: linear-gradient(180deg, var(--accent-color), var(--main-color));
-    transform: translate(-50%, -50%) rotate(0deg);
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.75), 0 4px 10px rgba(0, 0, 0, 0.28);
-    animation: cartoonTextCursorBlink 0.9s steps(1, end) infinite, cartoonTextCursorWobble 0.95s ease-in-out infinite;
-}
-body.cursor-text.cursor-hover .cursor-arrow{
-    transform: translate(-50%, -50%) rotate(0deg) scale(1.06);
-}
-@keyframes cartoonTextCursorBlink{
-    0%, 55%{ opacity: 1; }
-    56%, 100%{ opacity: 0.25; }
-}
-@keyframes cartoonTextCursorWobble{
-    0%, 100%{ transform: translate(-50%, -50%) rotate(-2deg); }
-    50%{ transform: translate(-50%, -50%) rotate(2deg); }
-}
-
 body::before{
     content: '';
     position: fixed;
@@ -1171,8 +1129,7 @@ body.performance-balanced .header{
     backdrop-filter: blur(8px);
 }
 
-body.performance-lite .ambient,
-body.performance-lite .cursor-arrow{
+body.performance-lite .ambient{
     display: none;
 }
 body.performance-lite .ticker-track{
@@ -1836,7 +1793,11 @@ body.theme-editorial .project-tags li{
         bottom: 1rem;
     }
     .term-panel{
-        width: min(360px, calc(100vw - 1.4rem));
+        width: min(420px, calc(100vw - 1.4rem));
+        height: min(500px, calc(100vh - 1.4rem));
+        min-width: 0;
+        min-height: 0;
+        resize: none;
     }
     .term-panel-form{
         grid-template-columns: 1fr;

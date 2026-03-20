@@ -1,0 +1,3 @@
+Internal Knowledge Assistant (RAG)
+Streamlit + FAISS assistant for retrieval-augmented responses over internal knowledge.
+Repo: https://github.com/Sandrocottus1/RAG_based_AI_Assistant.git

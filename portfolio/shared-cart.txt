@@ -1,0 +1,3 @@
+Shared-Cart
+Realtime collaborative cart concept where multiple users shop together in sync.
+Repo: https://github.com/zordican/walmart-frontend

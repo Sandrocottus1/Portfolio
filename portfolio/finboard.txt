@@ -1,0 +1,3 @@
+FinBoard
+Responsive Next.js dashboard with WebSockets and smooth mobile interactions.
+Repo: https://github.com/Sandrocottus1/FinBoard

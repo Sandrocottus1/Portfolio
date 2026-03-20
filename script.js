@@ -3,7 +3,6 @@ let navbar=document.querySelector('.navbar');
 initializeBootShell();
 initializeThemeSwitcher();
 initializePerformanceMode();
-initializeCursorExperience();
 initializeCardTiltEffect();
 initializeScrollReveal();
 initializeUtilityTerminal();
@@ -373,8 +372,9 @@ function initializeUtilityTerminal() {
     var output = document.getElementById('term-panel-output');
     var suggestions = document.getElementById('term-panel-suggestions');
     var form = document.getElementById('term-panel-form');
+    var promptLabel = form ? form.querySelector('label') : null;
     var input = document.getElementById('term-panel-input');
-    if (!root || !toggle || !panel || !head || !close || !output || !suggestions || !form || !input) {
+    if (!root || !toggle || !panel || !head || !close || !output || !suggestions || !form || !promptLabel || !input) {
         return;
     }
 
@@ -391,8 +391,41 @@ function initializeUtilityTerminal() {
         matches: [],
         index: -1
     };
-    var baseChips = ['help', 'status', 'set theme futuristic', 'set mode lite', 'goto contact'];
-    var funChips = ['neofetch', 'joke', 'matrix', 'sudo hire me -y'];
+    var baseChips = ['help', 'status', 'set theme futuristic', 'set mode lite', 'goto contact', 'neofetch', 'joke'];
+    var currentDir = '~';
+    var projectDir = '~/portfolio';
+    var projectFiles = {
+        'sandboxed.txt': {
+            title: 'Sandboxed Remote Code Executor',
+            intro: 'Secure sandboxed code execution with Docker isolation and real-time job status updates.',
+            repo: 'https://github.com/Sandrocottus1/sandboxed_code_execution_platform'
+        },
+        'finboard.txt': {
+            title: 'FinBoard',
+            intro: 'Responsive Next.js dashboard with WebSockets and smooth mobile interactions.',
+            repo: 'https://github.com/Sandrocottus1/FinBoard'
+        },
+        'rag.txt': {
+            title: 'Internal Knowledge Assistant (RAG)',
+            intro: 'Streamlit + FAISS assistant for retrieval-augmented responses over internal knowledge.',
+            repo: 'https://github.com/Sandrocottus1/RAG_based_AI_Assistant.git'
+        },
+        'shared-cart.txt': {
+            title: 'Shared-Cart',
+            intro: 'Realtime collaborative cart concept where multiple users shop together in sync.',
+            repo: 'https://github.com/zordican/walmart-frontend'
+        },
+        'assignmentkaro.txt': {
+            title: 'AssignmentKaro.com',
+            intro: 'Full-stack platform built with PHP and MySQL for student support workflows.',
+            repo: 'https://github.com/Sandrocottus1/AssignmentKaro.com'
+        },
+        'hospitalsnearme.txt': {
+            title: 'HospitalsNearme',
+            intro: 'Hospital discovery and slot booking solution built during Smart India Hackathon.',
+            repo: 'https://github.com/Sandrocottus1/Hospitals'
+        }
+    };
     var sectionAliases = {
         home: 'home',
         about: 'about',
@@ -414,7 +447,6 @@ function initializeUtilityTerminal() {
             /^goto\s+([a-z-]+)$/,
             /^go\s+([a-z-]+)$/,
             /^open\s+([a-z-]+)$/,
-            /^cd\s+([a-z-]+)$/,
             /^jump\s+to\s+([a-z-]+)$/,
             /^nav\s+([a-z-]+)$/
         ];
@@ -427,6 +459,64 @@ function initializeUtilityTerminal() {
         return '';
     }
 
+    function updatePrompt() {
+        promptLabel.textContent = 'user@portfolio:' + currentDir + '$';
+    }
+
+    function normalizeFileName(value) {
+        var cleaned = normalize(value).replace(/^\.\//, '');
+        if (!cleaned) {
+            return '';
+        }
+        if (cleaned.indexOf('.txt') === -1) {
+            cleaned += '.txt';
+        }
+        return cleaned;
+    }
+
+    function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    function startDrag(event) {
+        if (event.button !== 0) {
+            return;
+        }
+        if (event.target === close || close.contains(event.target)) {
+            return;
+        }
+        var rect = panel.getBoundingClientRect();
+        dragState.active = true;
+        dragState.offsetX = event.clientX - rect.left;
+        dragState.offsetY = event.clientY - rect.top;
+        root.classList.add('is-dragging');
+        panel.style.position = 'fixed';
+        panel.style.right = 'auto';
+        panel.style.bottom = 'auto';
+        panel.style.left = rect.left + 'px';
+        panel.style.top = rect.top + 'px';
+    }
+
+    function onDrag(event) {
+        if (!dragState.active) {
+            return;
+        }
+        var maxX = Math.max(8, window.innerWidth - panel.offsetWidth - 8);
+        var maxY = Math.max(8, window.innerHeight - panel.offsetHeight - 8);
+        var x = clamp(event.clientX - dragState.offsetX, 8, maxX);
+        var y = clamp(event.clientY - dragState.offsetY, 8, maxY);
+        panel.style.left = x + 'px';
+        panel.style.top = y + 'px';
+    }
+
+    function stopDrag() {
+        if (!dragState.active) {
+            return;
+        }
+        dragState.active = false;
+        root.classList.remove('is-dragging');
+    }
+
 
     function normalize(value) {
         return (value || '').toLowerCase().trim().replace(/\s+/g, ' ');
@@ -434,7 +524,27 @@ function initializeUtilityTerminal() {
 
     function writeLine(text, className) {
         var row = document.createElement('p');
-        row.textContent = text;
+        var content = text === undefined || text === null ? '' : String(text);
+        var urlRegex = /(https?:\/\/[^\s]+)/g;
+        var startIndex = 0;
+        var match;
+        while ((match = urlRegex.exec(content)) !== null) {
+            var url = match[0];
+            var matchIndex = match.index;
+            if (matchIndex > startIndex) {
+                row.appendChild(document.createTextNode(content.slice(startIndex, matchIndex)));
+            }
+            var anchor = document.createElement('a');
+            anchor.href = url;
+            anchor.textContent = url;
+            anchor.target = '_blank';
+            anchor.rel = 'noopener noreferrer';
+            row.appendChild(anchor);
+            startIndex = matchIndex + url.length;
+        }
+        if (startIndex < content.length) {
+            row.appendChild(document.createTextNode(content.slice(startIndex)));
+        }
         if (className) {
             row.classList.add(className);
         }
@@ -502,7 +612,9 @@ function initializeUtilityTerminal() {
             writeLine('[help] commands: help, status, clear, close, themes, modes');
             writeLine('[help] set theme <editorial|futuristic|minimal>');
             writeLine('[help] set mode <full|balanced|lite>');
-            writeLine('[help] goto/go/open/cd <home|about|portfolio|services|contact>');
+            writeLine('[help] goto/go/open/nav <home|about|portfolio|services|contact>');
+            writeLine('[help] fs: cd <portfolio|..|~>, ls, pwd, cat/type/file <name>');
+            writeLine('[help] fun: neofetch, joke');
             paintChips(['status', 'themes', 'modes', 'goto portfolio', 'close']);
             return;
         }
@@ -526,9 +638,74 @@ function initializeUtilityTerminal() {
             paintChips(baseChips);
             return;
         }
+        if (command === 'pwd') {
+            writeLine(currentDir);
+            return;
+        }
+        if (command === 'ls') {
+            if (currentDir === '~') {
+                writeLine('portfolio/');
+            } else {
+                Object.keys(projectFiles).forEach(function(name) {
+                    writeLine(name);
+                });
+            }
+            return;
+        }
+        if (command === 'cd' || command === 'cd ~' || command === 'cd /' || command === 'cd ..') {
+            currentDir = command === 'cd ..' ? '~' : '~';
+            updatePrompt();
+            return;
+        }
+        if (command === 'cd portfolio' || command === 'cd ./portfolio' || command === 'cd ~/portfolio') {
+            currentDir = projectDir;
+            updatePrompt();
+            return;
+        }
+        if (command.indexOf('cd ') === 0) {
+            writeLine('[error] path not found', 'error');
+            return;
+        }
+        if (command.indexOf('cat ') === 0 || command.indexOf('type ') === 0 || command.indexOf('file ') === 0) {
+            if (currentDir !== projectDir) {
+                writeLine('[error] cd portfolio first', 'error');
+                return;
+            }
+            var rawName = command.replace(/^(cat|type|file)\s+/, '');
+            var fileName = normalizeFileName(rawName);
+            var projectInfo = projectFiles[fileName];
+            if (!projectInfo) {
+                writeLine('[error] file not found: ' + rawName, 'error');
+                return;
+            }
+            writeLine(projectInfo.title + ': ' + projectInfo.intro);
+            writeLine('repo: ' + projectInfo.repo);
+            return;
+        }
         if (command === 'close' || command === 'exit') {
             writeLine('[ok] minimizing terminal');
             setTimeout(closePanel, 120);
+            return;
+        }
+        if (command === 'neofetch') {
+            writeLine('aryan@portfolio');
+            writeLine('---------------------------');
+            writeLine('Role: Full-stack developer');
+            writeLine('Focus: High-performance apps + AI tools');
+            writeLine('Stack: Node.js | Next.js | Docker | MongoDB');
+            writeLine('Status: open to internships');
+            return;
+        }
+        if (command === 'joke') {
+            var jokes = [
+                'I told my code to stop being lazy. It replied: later.',
+                'There are 10 kinds of people: those who understand binary and those who do not.',
+                'My code does not have bugs. It develops random features.',
+                'All these years of grinding skills and doing good deeds has brought me nothing but misery.',
+                'Love is not for me I suppose.'
+            ];
+            var randomIndex = Math.floor(Math.random() * jokes.length);
+            writeLine('[joke] ' + jokes[randomIndex]);
             return;
         }
         if (command.indexOf('set theme ') === 0) {
@@ -602,6 +779,10 @@ function initializeUtilityTerminal() {
         }
     });
 
+    head.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', onDrag);
+    document.addEventListener('mouseup', stopDrag);
+
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape' && !panel.hidden) {
             closePanel();
@@ -609,6 +790,7 @@ function initializeUtilityTerminal() {
     });
 
     paintChips(baseChips);
+    updatePrompt();
     writeLine('[hint] use help for commands');
 }
 
@@ -654,7 +836,6 @@ function applyPerformanceMode(modeName) {
         button.classList.toggle('is-active', isActive);
     });
     if (safeMode === 'lite') {
-        document.body.classList.remove('cursor-ready', 'cursor-hover', 'cursor-native', 'cursor-text');
         resetProjectCardTransforms();
     }
 }
@@ -750,98 +931,6 @@ function applyTheme(themeName) {
         var isActive = button.getAttribute('data-theme') === safeTheme;
         button.classList.toggle('is-active', isActive);
     });
-}
-
-function initializeCursorExperience() {
-    var supportsFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
-    if (!supportsFinePointer) {
-        return;
-    }
-    var arrow = document.getElementById('cursor-arrow');
-    if (!arrow) {
-        return;
-    }
-    var pointerX = window.innerWidth * 0.5;
-    var pointerY = window.innerHeight * 0.5;
-    var isVisible = false;
-    var interactiveSelector = 'a, button, .btn, .theme-btn, .project-card, .services-box, .social-media a, input, textarea, select, label';
-    var interactiveNodes = document.querySelectorAll(interactiveSelector);
-
-    function renderCursor() {
-        if (getPerformanceMode() === 'lite') {
-            requestAnimationFrame(renderCursor);
-            return;
-        }
-        arrow.style.left = pointerX + 'px';
-        arrow.style.top = pointerY + 'px';
-        requestAnimationFrame(renderCursor);
-    }
-
-    document.addEventListener('mousemove', function(event) {
-        if (getPerformanceMode() === 'lite') {
-            return;
-        }
-        pointerX = event.clientX;
-        pointerY = event.clientY;
-        if (!isVisible) {
-            document.body.classList.add('cursor-ready');
-            isVisible = true;
-        }
-    });
-
-    document.addEventListener('mouseleave', function() {
-        document.body.classList.remove('cursor-ready', 'cursor-hover', 'cursor-text');
-        isVisible = false;
-    });
-
-    interactiveNodes.forEach(function(node) {
-        node.addEventListener('mouseenter', function() {
-            if (getPerformanceMode() === 'lite') {
-                return;
-            }
-            document.body.classList.add('cursor-hover');
-        });
-        node.addEventListener('mouseleave', function() {
-            document.body.classList.remove('cursor-hover');
-        });
-    });
-
-    var nativeCursorNodes = document.querySelectorAll('.theme-btn, .perf-btn');
-    nativeCursorNodes.forEach(function(node) {
-        node.addEventListener('mouseenter', function() {
-            if (getPerformanceMode() === 'lite') {
-                return;
-            }
-            document.body.classList.add('cursor-native');
-        });
-        node.addEventListener('mouseleave', function() {
-            document.body.classList.remove('cursor-native');
-        });
-    });
-
-    var textInputNodes = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="search"], input[type="url"], input[type="password"], input:not([type]), textarea');
-    textInputNodes.forEach(function(node) {
-        node.addEventListener('mouseenter', function() {
-            if (getPerformanceMode() === 'lite') {
-                return;
-            }
-            document.body.classList.add('cursor-text');
-        });
-        node.addEventListener('mouseleave', function() {
-            document.body.classList.remove('cursor-text');
-        });
-        node.addEventListener('focus', function() {
-            if (getPerformanceMode() === 'lite') {
-                return;
-            }
-            document.body.classList.add('cursor-text');
-        });
-        node.addEventListener('blur', function() {
-            document.body.classList.remove('cursor-text');
-        });
-    });
-
-    requestAnimationFrame(renderCursor);
 }
 
 function initializeCardTiltEffect() {

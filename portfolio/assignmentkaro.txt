@@ -1,0 +1,3 @@
+AssignmentKaro.com
+Full-stack platform built with PHP and MySQL for student support workflows.
+Repo: https://github.com/Sandrocottus1/AssignmentKaro.com
