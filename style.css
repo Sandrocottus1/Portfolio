@@ -308,6 +308,27 @@ body.cursor-native .cursor-arrow{
 body.cursor-hover .cursor-arrow{
     transform: translate(-50%, -50%) rotate(-18deg) scale(1.1);
 }
+body.cursor-text .cursor-arrow{
+    width: 7px;
+    height: 36px;
+    clip-path: none;
+    border-radius: 5px;
+    background: linear-gradient(180deg, var(--accent-color), var(--main-color));
+    transform: translate(-50%, -50%) rotate(0deg);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.75), 0 4px 10px rgba(0, 0, 0, 0.28);
+    animation: cartoonTextCursorBlink 0.9s steps(1, end) infinite, cartoonTextCursorWobble 0.95s ease-in-out infinite;
+}
+body.cursor-text.cursor-hover .cursor-arrow{
+    transform: translate(-50%, -50%) rotate(0deg) scale(1.06);
+}
+@keyframes cartoonTextCursorBlink{
+    0%, 55%{ opacity: 1; }
+    56%, 100%{ opacity: 0.25; }
+}
+@keyframes cartoonTextCursorWobble{
+    0%, 100%{ transform: translate(-50%, -50%) rotate(-2deg); }
+    50%{ transform: translate(-50%, -50%) rotate(2deg); }
+}
 
 body::before{
     content: '';

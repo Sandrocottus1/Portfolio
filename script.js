@@ -77,7 +77,7 @@ function applyPerformanceMode(modeName) {
         button.classList.toggle('is-active', isActive);
     });
     if (safeMode === 'lite') {
-        document.body.classList.remove('cursor-ready', 'cursor-hover', 'cursor-native');
+        document.body.classList.remove('cursor-ready', 'cursor-hover', 'cursor-native', 'cursor-text');
         resetProjectCardTransforms();
     }
 }
@@ -213,7 +213,7 @@ function initializeCursorExperience() {
     });
 
     document.addEventListener('mouseleave', function() {
-        document.body.classList.remove('cursor-ready', 'cursor-hover');
+        document.body.classList.remove('cursor-ready', 'cursor-hover', 'cursor-text');
         isVisible = false;
     });
 
@@ -239,6 +239,28 @@ function initializeCursorExperience() {
         });
         node.addEventListener('mouseleave', function() {
             document.body.classList.remove('cursor-native');
+        });
+    });
+
+    var textInputNodes = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="search"], input[type="url"], input[type="password"], input:not([type]), textarea');
+    textInputNodes.forEach(function(node) {
+        node.addEventListener('mouseenter', function() {
+            if (getPerformanceMode() === 'lite') {
+                return;
+            }
+            document.body.classList.add('cursor-text');
+        });
+        node.addEventListener('mouseleave', function() {
+            document.body.classList.remove('cursor-text');
+        });
+        node.addEventListener('focus', function() {
+            if (getPerformanceMode() === 'lite') {
+                return;
+            }
+            document.body.classList.add('cursor-text');
+        });
+        node.addEventListener('blur', function() {
+            document.body.classList.remove('cursor-text');
         });
     });
 
