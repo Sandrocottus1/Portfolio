@@ -10,6 +10,29 @@
     <title>Portfolio</title>
 </head>
 <body>
+    <section class="boot-shell" id="boot-shell" aria-label="Startup terminal">
+        <div class="boot-window" role="dialog" aria-modal="true" aria-labelledby="boot-title">
+            <div class="boot-window-bar">
+                <span class="dot dot--red" aria-hidden="true"></span>
+                <span class="dot dot--yellow" aria-hidden="true"></span>
+                <span class="dot dot--green" aria-hidden="true"></span>
+                <p id="boot-title">portfolio://startup-shell</p>
+            </div>
+            <div class="boot-window-body">
+                <p class="boot-line">Portfolio shell v1.0.0</p>
+                <p class="boot-line">Type: <span>sudo open the app -y</span></p>
+                <p class="boot-line">Or use: <span>open app</span></p>
+                <div class="boot-output" id="boot-output" aria-live="polite"></div>
+                <div class="boot-suggestions" id="boot-suggestions" aria-label="Helpful command suggestions"></div>
+                <form class="boot-form" id="boot-form" autocomplete="off">
+                    <label for="boot-command" class="boot-prompt">visitor@portfolio:~$</label>
+                    <input type="text" id="boot-command" class="boot-command" placeholder="sudo open the app -y" spellcheck="false" />
+                    <button type="submit" class="boot-run">Run</button>
+                </form>
+                <button type="button" class="boot-skip" id="boot-skip">Quick open</button>
+            </div>
+        </div>
+    </section>
     <div class="cursor-arrow" id="cursor-arrow" aria-hidden="true"></div>
     <div class="progress-track" aria-hidden="true">
         <span class="progress-fill" id="scroll-progress"></span>
@@ -43,6 +66,12 @@
             <h1>Aryan Yadav</h1>
             <h3>And I'm a <span class="multiple-text"> Competitive Programmer</span></h3>
             <p>I build performance-focused web apps, data products, and AI tools with a clean UX and production-grade engineering.</p>
+            <div class="hero-console" aria-label="Developer snapshot">
+                <p><span>$</span> whoami</p>
+                <p class="hero-console-result">aryan_yadav // full_stack_builder</p>
+                <p><span>$</span> stack --top</p>
+                <p class="hero-console-result">node js | next js | docker | ai agents</p>
+            </div>
             <div class="availability-pill">
                 <span class="availability-dot"></span>
                 Open to internships and high-impact product roles
@@ -200,10 +229,15 @@
     <section class="portfolio" id="portfolio">
         <h2 class="heading">Selected <span>Projects</span></h2>
         <p class="section-lead">Product-grade systems with security, real-time data, and applied AI at the core.</p>
+        <div class="portfolio-cli" aria-label="Project terminal summary">
+            <span>aryan@portfolio:~/projects</span>
+            <strong>ls -la --show-stack --impact</strong>
+        </div>
         <div class="portfolio-container">
             <article class="project-card">
                 <div class="project-media project-media--executor"></div>
                 <div class="project-body">
+                    <p class="project-path">/platforms/sandboxed_code_execution</p>
                     <h3>Sandboxed Remote Code Executor</h3>
                     <p>Secure sandboxed code execution platform using Node.js, Docker, Redis queues, and MongoDB with enforced CPU/memory limits, container isolation, and real-time job status updates. Deployed on Digital Ocean.</p>
                     <ul class="project-tags">
@@ -221,6 +255,7 @@
             <article class="project-card">
                 <div class="project-media project-media--finboard"></div>
                 <div class="project-body">
+                    <p class="project-path">/products/finboard-dashboard</p>
                     <h3>FinBoard</h3>
                     <p>Responsive, feature-rich dashboard built with Next.js 15 and Tailwind CSS, solving API rate limiting, mobile drag-and-drop, and real-time WebSocket state management.</p>
                     <ul class="project-tags">
@@ -238,6 +273,7 @@
             <article class="project-card">
                 <div class="project-media project-media--rag"></div>
                 <div class="project-body">
+                    <p class="project-path">/ai/rag-internal-assistant</p>
                     <h3>Internal Knowledge Assistant (RAG)</h3>
                     <p>Streamlit-based assistant using FAISS indexing and Hugging Face Router APIs for embeddings, LLM inference, and smart retrieval for teams.</p>
                     <ul class="project-tags">
@@ -255,6 +291,7 @@
             <article class="project-card">
                 <div class="project-media project-media--shared"></div>
                 <div class="project-body">
+                    <p class="project-path">/apps/shared-cart-realtime</p>
                     <h3>Shared-Cart</h3>
                     <p>Group shopping concept that lets multiple users collaborate in a shared cart with real-time sync.</p>
                     <ul class="project-tags">
@@ -272,6 +309,7 @@
             <article class="project-card">
                 <div class="project-media project-media--assignment"></div>
                 <div class="project-body">
+                    <p class="project-path">/platforms/assignmentkaro</p>
                     <h3>AssignmentKaro.com</h3>
                     <p>Full-stack platform built with PHP, MySQL, and XAMPP for end-to-end student support workflows.</p>
                     <ul class="project-tags">
@@ -288,6 +326,7 @@
             <article class="project-card">
                 <div class="project-media project-media--hospital"></div>
                 <div class="project-body">
+                    <p class="project-path">/hackathon/hospitals-nearme</p>
                     <h3>HospitalsNearme</h3>
                     <p>Hospital discovery and slot booking system from Smart India Hackathon with real-time availability.</p>
                     <ul class="project-tags">
@@ -342,6 +381,24 @@
         <a href="#home"><i class="fa-solid fa-angle-up"></i></a>
     </div>
 </footer>
+<aside class="utility-terminal" id="utility-terminal" aria-label="On-demand terminal">
+    <button type="button" class="term-toggle" id="term-toggle" aria-expanded="false" aria-controls="term-panel">
+        <i class="fa-solid fa-terminal" aria-hidden="true"></i>
+        Terminal
+    </button>
+    <div class="term-panel" id="term-panel" hidden>
+        <div class="term-panel-head">
+            <p>live-shell</p>
+            <button type="button" class="term-close" id="term-close" aria-label="Close terminal">x</button>
+        </div>
+        <div class="term-panel-output" id="term-panel-output" aria-live="polite"></div>
+        <div class="term-panel-suggestions" id="term-panel-suggestions"></div>
+        <form class="term-panel-form" id="term-panel-form" autocomplete="off">
+            <label for="term-panel-input">user@portfolio:~$</label>
+            <input type="text" id="term-panel-input" spellcheck="false" placeholder="help" />
+        </form>
+    </div>
+</aside>
 <script src="https://unpkg.com/scrollreveal"></script>
 
 <script src="https://unpkg.com/typed.js@2.1.0/dist/typed.umd.js"></script>

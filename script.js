@@ -1,10 +1,12 @@
 let menuIcon=document.querySelector('#menu-icon');
 let navbar=document.querySelector('.navbar');
+initializeBootShell();
 initializeThemeSwitcher();
 initializePerformanceMode();
 initializeCursorExperience();
 initializeCardTiltEffect();
 initializeScrollReveal();
+initializeUtilityTerminal();
 
 let sections=document.querySelectorAll('section');
 let navLinks=document.querySelectorAll('header nav a');
@@ -24,6 +26,335 @@ const typed=new Typed('.multiple-text',{
     loop:true,
 });
 
+function initializeBootShell() {
+    var shell = document.getElementById('boot-shell');
+    var form = document.getElementById('boot-form');
+    var input = document.getElementById('boot-command');
+    var output = document.getElementById('boot-output');
+    var suggestions = document.getElementById('boot-suggestions');
+    var skip = document.getElementById('boot-skip');
+    var runBtn = form ? form.querySelector('.boot-run') : null;
+    if (!shell || !form || !input || !output || !suggestions || !skip || !runBtn) {
+        return;
+    }
+
+    document.body.classList.add('boot-active');
+    input.focus();
+    var history = [];
+    var historyIndex = -1;
+    var writeQueue = Promise.resolve();
+    var isBusy = false;
+    var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var outputQueue = Promise.resolve();
+
+    var openCommands = [
+        'sudo open the app -y',
+        'sudo open app -y',
+        'open app',
+        'run app',
+        'start app',
+        'open the app'
+    ];
+    var defaultSuggestions = ['help', 'sudo open the app -y', 'set theme futuristic', 'set mode lite', 'status'];
+    var sectionAliases = {
+        home: 'home',
+        about: 'about',
+        service: 'services',
+        services: 'services',
+        portfolio: 'portfolio',
+        project: 'portfolio',
+        projects: 'portfolio',
+        contact: 'contact'
+    };
+
+    function delay(ms) {
+        return new Promise(function(resolve) {
+            setTimeout(resolve, ms);
+        });
+    }
+
+    function normalize(value) {
+        return (value || '').toLowerCase().trim().replace(/\s+/g, ' ');
+    }
+
+    function scrollOutputToBottom() {
+        output.scrollTop = output.scrollHeight;
+    }
+
+    function printLine(text, className) {
+        var line = document.createElement('p');
+        line.textContent = '';
+        if (className) {
+            line.classList.add(className);
+        }
+        output.appendChild(line);
+        var speed = prefersReducedMotion ? 0 : 13;
+        return new Promise(function(resolve) {
+            if (!speed) {
+                line.textContent = text;
+                scrollOutputToBottom();
+                resolve();
+                return;
+            }
+            var idx = 0;
+            function typeNext() {
+                line.textContent = text.slice(0, idx);
+                scrollOutputToBottom();
+                if (idx >= text.length) {
+                    resolve();
+                    return;
+                }
+                idx += 1;
+                setTimeout(typeNext, speed);
+            }
+            typeNext();
+        });
+    }
+
+    function enqueueLine(text, className) {
+        outputQueue = outputQueue.then(function() {
+            return printLine(text, className);
+        });
+        return outputQueue;
+    }
+
+    function setBusyState(state) {
+        isBusy = state;
+        input.disabled = state;
+        runBtn.disabled = state;
+        skip.disabled = state;
+    }
+
+    function paintSuggestions(commands) {
+        suggestions.innerHTML = '';
+        commands.forEach(function(commandText) {
+            var chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'boot-chip';
+            chip.textContent = commandText;
+            chip.addEventListener('click', function() {
+                if (isBusy) {
+                    return;
+                }
+                input.value = commandText;
+                input.focus();
+            });
+            suggestions.appendChild(chip);
+        });
+    }
+
+    function activeTheme() {
+        if (document.body.classList.contains('theme-futuristic')) {
+            return 'futuristic';
+        }
+        if (document.body.classList.contains('theme-minimal')) {
+            return 'minimal';
+        }
+        return 'editorial';
+    }
+
+    function resolveSectionToken(token) {
+        var normalized = normalize(token);
+        return sectionAliases[normalized] || '';
+    }
+
+    function parseSectionFromCommand(command) {
+        var patterns = [
+            /^goto\s+([a-z-]+)$/,
+            /^go\s+([a-z-]+)$/,
+            /^open\s+([a-z-]+)$/,
+            /^cd\s+([a-z-]+)$/,
+            /^jump\s+to\s+([a-z-]+)$/,
+            /^nav\s+([a-z-]+)$/
+        ];
+        for (var i = 0; i < patterns.length; i += 1) {
+            var matched = command.match(patterns[i]);
+            if (matched && matched[1]) {
+                return resolveSectionToken(matched[1]);
+            }
+        }
+        return '';
+    }
+
+    async function openPortfolio(targetSection) {
+        setBusyState(true);
+        await enqueueLine('[ok] validating permissions...');
+        await delay(prefersReducedMotion ? 0 : 260);
+        await enqueueLine('[ok] loading ui bundles...');
+        await delay(prefersReducedMotion ? 0 : 240);
+        await enqueueLine('[ok] applying visual profile: ' + activeTheme());
+        await delay(prefersReducedMotion ? 0 : 240);
+        await enqueueLine('[ok] booting portfolio UI...');
+        shell.classList.add('is-exiting');
+        setTimeout(function() {
+            shell.style.display = 'none';
+            document.body.classList.remove('boot-active');
+            runScrollWork();
+            if (targetSection) {
+                var target = document.getElementById(targetSection);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        }, 560);
+    }
+
+    function showHelp() {
+        enqueueLine('[help] available commands:');
+        enqueueLine('  help, status, clear, about');
+        enqueueLine('  themes, modes');
+        enqueueLine('  goto/go/open/cd <home|about|services|portfolio|contact>');
+        enqueueLine('  set theme <editorial|futuristic|minimal>');
+        enqueueLine('  set mode <full|balanced|lite>');
+        enqueueLine('  sudo open the app -y');
+        paintSuggestions([
+            'themes',
+            'modes',
+            'goto services',
+            'set theme futuristic',
+            'set mode full',
+            'sudo open the app -y'
+        ]);
+    }
+
+    function showThemes() {
+        enqueueLine('[themes] editorial, futuristic, minimal');
+        paintSuggestions(['set theme editorial', 'set theme futuristic', 'set theme minimal']);
+    }
+
+    function showModes() {
+        enqueueLine('[modes] full, balanced, lite');
+        paintSuggestions(['set mode full', 'set mode balanced', 'set mode lite']);
+    }
+
+    function setThemeFromCommand(value) {
+        var theme = value.split('set theme ')[1] || '';
+        theme = normalize(theme);
+        if (theme !== 'editorial' && theme !== 'futuristic' && theme !== 'minimal') {
+            enqueueLine('[error] invalid theme. use editorial, futuristic, or minimal.', 'error');
+            return;
+        }
+        applyTheme(theme);
+        enqueueLine('[ok] theme set to ' + theme + '.');
+    }
+
+    function setModeFromCommand(value) {
+        var mode = value.split('set mode ')[1] || '';
+        mode = normalize(mode);
+        if (mode !== 'full' && mode !== 'balanced' && mode !== 'lite') {
+            enqueueLine('[error] invalid mode. use full, balanced, or lite.', 'error');
+            return;
+        }
+        applyPerformanceMode(mode);
+        enqueueLine('[ok] performance mode set to ' + mode + '.');
+    }
+
+    function showStatus() {
+        enqueueLine('[status] theme=' + activeTheme() + ', mode=' + getPerformanceMode());
+    }
+
+    function handleCommand(rawCommand) {
+        var command = normalize(rawCommand);
+        if (!command) {
+            return;
+        }
+        enqueueLine('> ' + rawCommand);
+
+        if (command === 'help' || command === '?') {
+            showHelp();
+            return;
+        }
+        if (command === 'themes') {
+            showThemes();
+            return;
+        }
+        if (command === 'modes') {
+            showModes();
+            return;
+        }
+        if (command === 'status') {
+            showStatus();
+            return;
+        }
+        if (command === 'about') {
+            enqueueLine('[about] built by Aryan Yadav: full-stack, AI, and performance-focused web apps.');
+            paintSuggestions(['help', 'status', 'sudo open the app -y']);
+            return;
+        }
+        if (command === 'clear') {
+            output.innerHTML = '';
+            paintSuggestions(defaultSuggestions);
+            enqueueLine('[ok] terminal cleared.');
+            return;
+        }
+        if (command.indexOf('set theme ') === 0) {
+            setThemeFromCommand(command);
+            return;
+        }
+        if (command.indexOf('set mode ') === 0) {
+            setModeFromCommand(command);
+            return;
+        }
+        var sectionFromCommand = parseSectionFromCommand(command);
+        if (sectionFromCommand) {
+            enqueueLine('[ok] preparing jump to #' + sectionFromCommand + ' ...');
+            openPortfolio(sectionFromCommand);
+            return;
+        }
+        if (openCommands.indexOf(command) !== -1) {
+            openPortfolio();
+            return;
+        }
+
+        enqueueLine('[error] unknown command. type help to view available commands.', 'error');
+        paintSuggestions(defaultSuggestions);
+    }
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        if (isBusy) {
+            return;
+        }
+        var command = input.value || '';
+        if (!command.trim()) {
+            return;
+        }
+        history.push(command);
+        historyIndex = history.length;
+        handleCommand(command);
+        input.value = '';
+    });
+
+    input.addEventListener('keydown', function(event) {
+        if (!history.length) {
+            return;
+        }
+        if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            historyIndex = Math.max(0, historyIndex - 1);
+            input.value = history[historyIndex];
+            return;
+        }
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            historyIndex = Math.min(history.length, historyIndex + 1);
+            input.value = historyIndex === history.length ? '' : history[historyIndex];
+        }
+    });
+
+    skip.addEventListener('click', function() {
+        if (isBusy) {
+            return;
+        }
+        enqueueLine('> quick open');
+        enqueueLine('[ok] quick open enabled');
+        openPortfolio();
+    });
+
+    paintSuggestions(defaultSuggestions);
+    enqueueLine('[hint] type help to explore interactive commands.');
+}
+
 function updateReadingProgress() {
     var progress = document.getElementById('scroll-progress');
     if (!progress) {
@@ -33,6 +364,490 @@ function updateReadingProgress() {
     var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
     var width = maxScroll > 0 ? (scrollTop / maxScroll) * 100 : 0;
     progress.style.width = Math.min(100, Math.max(0, width)) + '%';
+}
+
+function initializeUtilityTerminal() {
+    var root = document.getElementById('utility-terminal');
+    var toggle = document.getElementById('term-toggle');
+    var panel = document.getElementById('term-panel');
+    var head = panel ? panel.querySelector('.term-panel-head') : null;
+    var close = document.getElementById('term-close');
+    var output = document.getElementById('term-panel-output');
+    var suggestions = document.getElementById('term-panel-suggestions');
+    var form = document.getElementById('term-panel-form');
+    var input = document.getElementById('term-panel-input');
+    if (!root || !toggle || !panel || !head || !close || !output || !suggestions || !form || !input) {
+        return;
+    }
+
+    var history = [];
+    var historyIndex = -1;
+    var dragKey = 'portfolio-terminal-position';
+    var dragState = {
+        active: false,
+        offsetX: 0,
+        offsetY: 0
+    };
+    var autoCompleteState = {
+        base: '',
+        matches: [],
+        index: -1
+    };
+    var baseChips = ['help', 'status', 'set theme futuristic', 'set mode lite', 'goto contact'];
+    var funChips = ['neofetch', 'joke', 'matrix', 'sudo hire me -y'];
+    var sectionAliases = {
+        home: 'home',
+        about: 'about',
+        service: 'services',
+        services: 'services',
+        portfolio: 'portfolio',
+        project: 'portfolio',
+        projects: 'portfolio',
+        contact: 'contact'
+    };
+
+    var commandDictionary = [
+        'help',
+        'status',
+        'themes',
+        'modes',
+        'clear',
+        'close',
+        'exit',
+        'set theme editorial',
+        'set theme futuristic',
+        'set theme minimal',
+        'set mode full',
+        'set mode balanced',
+        'set mode lite',
+        'goto home',
+        'goto about',
+        'goto services',
+        'goto portfolio',
+        'goto contact',
+        'go home',
+        'open portfolio',
+        'cd services',
+        'jump to contact',
+        'nav about',
+        'neofetch',
+        'matrix',
+        'joke',
+        'coffee',
+        'sudo hire me -y'
+    ];
+
+    function resetAutoComplete() {
+        autoCompleteState.base = '';
+        autoCompleteState.matches = [];
+        autoCompleteState.index = -1;
+    }
+
+    function clamp(value, min, max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
+    function saveTerminalPosition(left, top) {
+        var payload = { left: Math.round(left), top: Math.round(top) };
+        localStorage.setItem(dragKey, JSON.stringify(payload));
+    }
+
+    function applyTerminalPosition(left, top) {
+        root.style.left = left + 'px';
+        root.style.top = top + 'px';
+        root.style.right = 'auto';
+        root.style.bottom = 'auto';
+    }
+
+    function restoreTerminalPosition() {
+        var saved = localStorage.getItem(dragKey);
+        if (!saved) {
+            return;
+        }
+        try {
+            var parsed = JSON.parse(saved);
+            if (typeof parsed.left !== 'number' || typeof parsed.top !== 'number') {
+                return;
+            }
+            var rootRect = root.getBoundingClientRect();
+            var maxX = Math.max(0, window.innerWidth - rootRect.width - 8);
+            var maxY = Math.max(0, window.innerHeight - 56);
+            applyTerminalPosition(clamp(parsed.left, 8, maxX), clamp(parsed.top, 8, maxY));
+        } catch (err) {
+            localStorage.removeItem(dragKey);
+        }
+    }
+
+    function startDrag(event) {
+        if (event.target === close || close.contains(event.target)) {
+            return;
+        }
+        var rect = root.getBoundingClientRect();
+        dragState.active = true;
+        dragState.offsetX = event.clientX - rect.left;
+        dragState.offsetY = event.clientY - rect.top;
+        root.classList.add('is-dragging');
+    }
+
+    function moveDrag(event) {
+        if (!dragState.active) {
+            return;
+        }
+        var maxX = Math.max(0, window.innerWidth - root.offsetWidth - 8);
+        var maxY = Math.max(0, window.innerHeight - 56);
+        var nextX = clamp(event.clientX - dragState.offsetX, 8, maxX);
+        var nextY = clamp(event.clientY - dragState.offsetY, 8, maxY);
+        applyTerminalPosition(nextX, nextY);
+    }
+
+    function endDrag() {
+        if (!dragState.active) {
+            return;
+        }
+        dragState.active = false;
+        root.classList.remove('is-dragging');
+        var rect = root.getBoundingClientRect();
+        saveTerminalPosition(rect.left, rect.top);
+    }
+
+    function resolveSectionToken(token) {
+        var normalized = normalize(token);
+        return sectionAliases[normalized] || '';
+    }
+
+    function extractSection(command) {
+        var patterns = [
+            /^goto\s+([a-z-]+)$/,
+            /^go\s+([a-z-]+)$/,
+            /^open\s+([a-z-]+)$/,
+            /^cd\s+([a-z-]+)$/,
+            /^jump\s+to\s+([a-z-]+)$/,
+            /^nav\s+([a-z-]+)$/
+        ];
+        for (var i = 0; i < patterns.length; i += 1) {
+            var matched = command.match(patterns[i]);
+            if (matched && matched[1]) {
+                return resolveSectionToken(matched[1]);
+            }
+        }
+        return '';
+    }
+
+
+    function normalize(value) {
+        return (value || '').toLowerCase().trim().replace(/\s+/g, ' ');
+    }
+
+    function writeLine(text, className) {
+        var safeText = text === undefined || text === null ? '' : String(text);
+        var row = document.createElement('p');
+        row.textContent = safeText;
+        if (className) {
+            row.classList.add(className);
+        }
+        output.appendChild(row);
+        output.scrollTop = output.scrollHeight;
+        return Promise.resolve();
+    }
+
+    function enqueueWrite(text, className) {
+        writeQueue = writeQueue.catch(function() {
+            return Promise.resolve();
+        }).then(function() {
+            return writeLine(text, className);
+        });
+        return writeQueue;
+    }
+
+    function paintChips(list) {
+        suggestions.innerHTML = '';
+        list.forEach(function(cmd) {
+            var chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'term-panel-chip';
+            chip.textContent = cmd;
+            chip.addEventListener('click', function() {
+                input.value = cmd;
+                input.focus();
+            });
+            suggestions.appendChild(chip);
+        });
+    }
+
+    function randomInt(max) {
+        return Math.floor(Math.random() * max);
+    }
+
+    function runNeofetch() {
+        enqueueWrite('aryan@portfolio');
+        enqueueWrite('---------------------------');
+        enqueueWrite('Role: Full-stack developer');
+        enqueueWrite('Focus: High-performance apps + AI tools');
+        enqueueWrite('Stack: Node.js | Next.js | Docker | MongoDB');
+        enqueueWrite('Status: open to internships');
+    }
+
+    function runMatrix() {
+        enqueueWrite('[matrix] streaming signal:');
+        for (var i = 0; i < 5; i += 1) {
+            var line = '';
+            for (var j = 0; j < 28; j += 1) {
+                line += randomInt(2);
+            }
+            enqueueWrite(line);
+        }
+    }
+
+    function runJoke() {
+        var jokes = [
+            'I told my code to stop being lazy. It replied: later.',
+            'There are 10 kinds of people: those who understand binary and those who do not.',
+            'My code does not have bugs. It develops random features.'
+        ];
+        enqueueWrite('[joke] ' + jokes[randomInt(jokes.length)]);
+    }
+
+    function runCoffee() {
+        enqueueWrite('  ( (');
+        enqueueWrite('   ) )');
+        enqueueWrite('........');
+        enqueueWrite('|      |]  fuel loaded');
+        enqueueWrite('\\      /');
+        enqueueWrite(' `----\'');
+    }
+
+    function autoCompleteInput(reverse) {
+        var currentValue = normalize(input.value);
+        if (!currentValue) {
+            return;
+        }
+        if (autoCompleteState.base !== currentValue) {
+            autoCompleteState.base = currentValue;
+            autoCompleteState.matches = commandDictionary.filter(function(cmd) {
+                return cmd.indexOf(currentValue) === 0;
+            });
+            autoCompleteState.index = -1;
+        }
+        if (!autoCompleteState.matches.length) {
+            enqueueWrite('[hint] no autocomplete match for "' + currentValue + '"', 'error');
+            return;
+        }
+        if (reverse) {
+            autoCompleteState.index = autoCompleteState.index <= 0
+                ? autoCompleteState.matches.length - 1
+                : autoCompleteState.index - 1;
+        } else {
+            autoCompleteState.index = (autoCompleteState.index + 1) % autoCompleteState.matches.length;
+        }
+        input.value = autoCompleteState.matches[autoCompleteState.index];
+    }
+
+    function openPanel() {
+        panel.hidden = false;
+        toggle.setAttribute('aria-expanded', 'true');
+        setTimeout(function() {
+            input.focus();
+        }, 50);
+    }
+
+    function closePanel() {
+        panel.hidden = true;
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.focus();
+    }
+
+    function getCurrentTheme() {
+        if (document.body.classList.contains('theme-futuristic')) {
+            return 'futuristic';
+        }
+        if (document.body.classList.contains('theme-minimal')) {
+            return 'minimal';
+        }
+        return 'editorial';
+    }
+
+    function navigateTo(sectionId) {
+        var target = document.getElementById(sectionId);
+        if (!target) {
+            writeLine('[error] section not found: ' + sectionId, 'error');
+            return;
+        }
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        writeLine('[ok] moved to #' + sectionId);
+    }
+
+    function handleCommand(raw) {
+        var command = normalize(raw);
+        if (!command) {
+            return;
+        }
+        enqueueWrite('> ' + raw);
+
+        if (command === 'help' || command === '?') {
+            enqueueWrite('[help] commands: help, status, clear, close, themes, modes');
+            enqueueWrite('[help] set theme <editorial|futuristic|minimal>');
+            enqueueWrite('[help] set mode <full|balanced|lite>');
+            enqueueWrite('[help] goto/go/open/cd <home|about|portfolio|services|contact>');
+            enqueueWrite('[help] fun: neofetch, joke, matrix, coffee, sudo hire me -y');
+            paintChips(['status', 'themes', 'modes', 'goto portfolio', 'close']);
+            return;
+        }
+        if (command === 'status') {
+            enqueueWrite('[status] theme=' + getCurrentTheme() + ', mode=' + getPerformanceMode());
+            return;
+        }
+        if (command === 'themes') {
+            enqueueWrite('[themes] editorial, futuristic, minimal');
+            paintChips(['set theme editorial', 'set theme futuristic', 'set theme minimal']);
+            return;
+        }
+        if (command === 'modes') {
+            enqueueWrite('[modes] full, balanced, lite');
+            paintChips(['set mode full', 'set mode balanced', 'set mode lite']);
+            return;
+        }
+        if (command === 'clear') {
+            output.innerHTML = '';
+            writeQueue = Promise.resolve();
+            enqueueWrite('[ok] terminal cleared');
+            paintChips(baseChips);
+            return;
+        }
+        if (command === 'close' || command === 'exit') {
+            enqueueWrite('[ok] minimizing terminal');
+            setTimeout(closePanel, 120);
+            return;
+        }
+        if (command === 'neofetch') {
+            runNeofetch();
+            return;
+        }
+        if (command === 'matrix') {
+            runMatrix();
+            return;
+        }
+        if (command === 'joke') {
+            runJoke();
+            return;
+        }
+        if (command === 'coffee') {
+            runCoffee();
+            return;
+        }
+        if (command === 'sudo hire me -y' || command === 'hire me') {
+            enqueueWrite('[ok] request accepted. redirecting recruiter attention...');
+            enqueueWrite('[ok] contact: linkedin.com/in/aryan-yadav-685440257');
+            paintChips(['goto contact', 'status', 'joke']);
+            return;
+        }
+        if (command.indexOf('set theme ') === 0) {
+            var theme = normalize(command.replace('set theme ', ''));
+            if (theme !== 'editorial' && theme !== 'futuristic' && theme !== 'minimal') {
+                enqueueWrite('[error] invalid theme', 'error');
+                return;
+            }
+            applyTheme(theme);
+            enqueueWrite('[ok] theme set to ' + theme);
+            return;
+        }
+        if (command.indexOf('set mode ') === 0) {
+            var mode = normalize(command.replace('set mode ', ''));
+            if (mode !== 'full' && mode !== 'balanced' && mode !== 'lite') {
+                enqueueWrite('[error] invalid mode', 'error');
+                return;
+            }
+            applyPerformanceMode(mode);
+            enqueueWrite('[ok] mode set to ' + mode);
+            return;
+        }
+        var sectionId = extractSection(command);
+        if (sectionId) {
+            navigateTo(sectionId);
+            return;
+        }
+        enqueueWrite('[error] unknown command. type help', 'error');
+    }
+
+    function executeInputCommand() {
+        var value = input.value || '';
+        if (!value.trim()) {
+            return;
+        }
+        history.push(value);
+        historyIndex = history.length;
+        handleCommand(value);
+        input.value = '';
+        resetAutoComplete();
+    }
+
+    toggle.addEventListener('click', function() {
+        if (panel.hidden) {
+            openPanel();
+            return;
+        }
+        closePanel();
+    });
+
+    close.addEventListener('click', closePanel);
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+        executeInputCommand();
+    });
+
+    input.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            executeInputCommand();
+            return;
+        }
+        if (event.key === 'Tab') {
+            event.preventDefault();
+            autoCompleteInput(event.shiftKey);
+            return;
+        }
+        if (!history.length) {
+            return;
+        }
+        if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            historyIndex = Math.max(0, historyIndex - 1);
+            input.value = history[historyIndex];
+        }
+        if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            historyIndex = Math.min(history.length, historyIndex + 1);
+            input.value = historyIndex === history.length ? '' : history[historyIndex];
+        }
+    });
+
+    input.addEventListener('input', resetAutoComplete);
+
+    head.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', moveDrag);
+    document.addEventListener('mouseup', endDrag);
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape' && !panel.hidden) {
+            closePanel();
+        }
+    });
+
+    window.addEventListener('resize', function() {
+        var rect = root.getBoundingClientRect();
+        if (root.style.left && root.style.top) {
+            var maxX = Math.max(0, window.innerWidth - root.offsetWidth - 8);
+            var maxY = Math.max(0, window.innerHeight - 56);
+            var x = clamp(rect.left, 8, maxX);
+            var y = clamp(rect.top, 8, maxY);
+            applyTerminalPosition(x, y);
+            saveTerminalPosition(x, y);
+        }
+    });
+
+    restoreTerminalPosition();
+    paintChips(baseChips.concat(funChips));
+    enqueueWrite('[hint] use help for commands');
 }
 
 function initializePerformanceMode() {
