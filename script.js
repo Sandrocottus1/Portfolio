@@ -820,6 +820,19 @@ function initializeUtilityTerminal() {
         }
     });
 
+    document.addEventListener('click', function(event) {
+        if (panel.hidden) {
+            return;
+        }
+        if (root.contains(event.target)) {
+            return;
+        }
+        if (toggle.contains(event.target)) {
+            return;
+        }
+        closePanel();
+    });
+
     paintChips(baseChips);
     updatePrompt();
     writeLine('[hint] use help for commands');
