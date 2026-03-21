@@ -374,6 +374,38 @@ body.boot-active{
 .boot-output .error{
     color: #ff8f86;
 }
+.boot-output .line-ok{
+    color: #2cff9f;
+    font-weight: 600;
+}
+.boot-output .line-error{
+    color: #ff6b7a;
+    font-weight: 600;
+}
+.boot-output .line-warn{
+    color: #ffa500;
+    font-weight: 600;
+}
+.boot-output .line-help{
+    color: #55d4ff;
+    font-weight: 500;
+}
+.boot-output .line-status{
+    color: #ffef8a;
+    font-weight: 500;
+}
+.boot-output .line-theme{
+    color: #ff8dff;
+    font-weight: 500;
+}
+.boot-output .line-mode{
+    color: #ff9b64;
+    font-weight: 500;
+}
+.boot-output .line-whoami{
+    color: #96ff8e;
+    font-weight: 500;
+}
 .boot-suggestions{
     display: flex;
     flex-wrap: wrap;
@@ -404,6 +436,8 @@ body.boot-active{
     font-size: 1.35rem;
     color: #56f7c0;
     white-space: nowrap;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(86, 247, 192, 0.3);
 }
 .boot-command{
     display: inline-block;
@@ -411,7 +445,7 @@ body.boot-active{
     max-width: calc(100% - 2ch);
     min-width: 1ch;
     background: transparent;
-    color: #e8f9fa;
+    color: #ffd700;
     border: none;
     padding: 0;
     font-size: 1.35rem;
@@ -420,6 +454,7 @@ body.boot-active{
     overflow-wrap: anywhere;
     word-break: break-word;
     caret-color: transparent;
+    font-weight: 600;
 }
 .boot-command:focus,
 .boot-command:focus-visible{
@@ -432,6 +467,7 @@ body.boot-active{
     line-height: 1;
     font-family: 'IBM Plex Mono', monospace;
     font-weight: 900;
+    text-shadow: 0 0 6px rgba(86, 247, 192, 0.4);
     transform: scaleY(1.9);
     transform-origin: center;
     animation: terminalUnderscoreBlink 1s steps(1, end) infinite;
@@ -617,7 +653,9 @@ body.boot-active .utility-terminal{
     margin-left: 1px;
 }
 .term-panel-output .prompt-command{
-    color: #ffffff;
+    color: #ffd700;
+    font-weight: 600;
+    text-shadow: 0 0 4px rgba(255, 215, 0, 0.2);
 }
 .term-panel-output p a{
     color: #42c8ff;
@@ -704,8 +742,10 @@ body.boot-active .utility-terminal{
     gap: 0.45rem;
 }
 .term-panel-output .term-input-prompt{
-    color: #f1f1f1;
+    color: #2cff9f;
     white-space: nowrap;
+    font-weight: 700;
+    text-shadow: 0 0 6px rgba(44, 255, 159, 0.3);
 }
 .term-panel-output .term-inline-wrap{
     position: relative;
@@ -722,6 +762,8 @@ body.boot-active .utility-terminal{
     overflow-wrap: normal;
     word-break: normal;
     caret-color: transparent;
+    color: #ffd700;
+    font-weight: 600;
 }
 .term-panel-output .term-inline-cursor{
     position: absolute;
