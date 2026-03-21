@@ -1252,6 +1252,7 @@ function initializeUtilityTerminal() {
                 'JavaScript/Node.js': 85,
                 'React/Next.js': 80,
                 'Python': 75,
+                'C++': 100,
                 'Docker': 70,
                 'MongoDB': 80,
                 'PostgreSQL': 75,
@@ -1267,6 +1268,7 @@ function initializeUtilityTerminal() {
                     writeLine(skill.padEnd(20) + bar);
                 }
             }
+            writeLine('[skills] C++ rating: 10/10');
             playTerminalBeep();
             return;
         }
@@ -1275,9 +1277,9 @@ function initializeUtilityTerminal() {
             writeLine('github     → https://github.com/Sandrocottus1');
             writeLine('leetcode   → https://leetcode.com/u/_aryan0205/');
             writeLine('codeforces → https://codeforces.com/profile/itsmearyan0205');
-            writeLine('linkedin   → (coming soon)');
-            writeLine('twitter    → (coming soon)');
-            writeLine('email      → contact via portfolio');
+            writeLine('linkedin   → https://www.linkedin.com/in/aryan-yadav-685440257/');
+            writeLine('twitter    → https://x.com/aryan21515');
+            writeLine('email      → 10aryanyadav01@gmail.com');
             return;
         }
         if (command === 'stats') {
