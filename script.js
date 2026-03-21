@@ -1112,7 +1112,7 @@ function initializeUtilityTerminal() {
             writeLine('role: Full Stack Developer');
             writeLine('passion: Building scalable backends & responsive interfaces');
             writeLine('github: https://github.com/Sandrocottus1');
-            writeLine('leetcode: https://leetcode.com/u/itsmearyan0205/');
+            writeLine('leetcode: https://leetcode.com/u/_aryan0205/');
             writeLine('codeforces: https://codeforces.com/profile/itsmearyan0205');
             writeLine('status: Actively seeking opportunities 🚀');
             return;
