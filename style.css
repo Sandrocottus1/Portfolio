@@ -491,6 +491,22 @@ body.boot-active .utility-terminal{
 .term-toggle i{
     font-size: 1.2rem;
 }
+.term-toggle-hint{
+    margin: -0.15rem 0 0;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    border: 1px solid rgba(103, 162, 255, 0.35);
+    background: rgba(12, 22, 39, 0.88);
+    color: #a9d8ff;
+    font-size: 1rem;
+    line-height: 1.2;
+    letter-spacing: 0.01em;
+    font-family: Consolas, 'Cascadia Mono', 'Courier New', monospace;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+}
+.term-toggle[aria-expanded='true'] + .term-toggle-hint{
+    opacity: 0.35;
+}
 .term-panel{
     width: min(430px, calc(100vw - 2rem));
     height: min(390px, calc(100vh - 2rem));
