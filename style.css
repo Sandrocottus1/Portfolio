@@ -561,13 +561,13 @@ body.boot-active .utility-terminal{
     color: #4ec9b0;
 }
 .term-panel-output .prompt-host{
-    color: #dcdcaa;
+    color: #c25786;
 }
 .term-panel-output .prompt-path{
     color: #9cdcfe;
 }
 .term-panel-output .prompt-dollar{
-    color: #ce9178;
+    color: #ffe600;
     margin-left: 1px;
 }
 .term-panel-output .prompt-command{
