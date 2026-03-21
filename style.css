@@ -499,9 +499,9 @@ body.boot-active .utility-terminal{
     max-width: calc(100vw - 1rem);
     max-height: calc(100vh - 1rem);
     border-radius: 4px;
-    border: 1px solid #454545;
+    border: 1px solid #3a8cff;
     background: #000;
-    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.38);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.38), 0 0 0 1px rgba(58, 140, 255, 0.22), 0 0 22px rgba(58, 140, 255, 0.16);
     overflow: hidden;
     resize: both;
     display: grid;
@@ -515,8 +515,8 @@ body.boot-active .utility-terminal{
     align-items: center;
     justify-content: space-between;
     padding: 0.8rem 1rem;
-    background: #0f0f0f;
-    border-bottom: 1px solid #2c2c2c;
+    background: #101a2b;
+    border-bottom: 1px solid #2e5ea8;
     cursor: move;
 }
 .utility-terminal.is-dragging,
@@ -524,14 +524,14 @@ body.boot-active .utility-terminal{
     user-select: none;
 }
 .term-panel-head p{
-    color: #d8d8d8;
+    color: #9cdcfe;
     font-size: 1.2rem;
     font-family: Consolas, 'Cascadia Mono', 'Courier New', monospace;
 }
 .term-close{
-    background: #181818;
-    color: #dfdfdf;
-    border: 1px solid #4a4a4a;
+    background: #2a0f17;
+    color: #ffdce6;
+    border: 1px solid #d16889;
     border-radius: 2px;
     font-size: 1.1rem;
     padding: 0.2rem 0.5rem;
@@ -555,57 +555,57 @@ body.boot-active .utility-terminal{
     word-break: break-word;
 }
 .term-panel-output p.line-prompt{
-    color: #d8d8d8;
+    color: #f0f7ff;
 }
 .term-panel-output .prompt-user{
-    color: #4ec9b0;
+    color: #00e5ff;
 }
 .term-panel-output .prompt-host{
-    color: #c25786;
+    color: #ff4fa2;
 }
 .term-panel-output .prompt-path{
-    color: #9cdcfe;
+    color: #49b6ff;
 }
 .term-panel-output .prompt-dollar{
-    color: #ffe600;
+    color: #fff200;
     margin-left: 1px;
 }
 .term-panel-output .prompt-command{
-    color: #f5f5f5;
+    color: #ffffff;
 }
 .term-panel-output p a{
-    color: #9cdcfe;
+    color: #42c8ff;
     text-decoration: underline;
     text-underline-offset: 2px;
     overflow-wrap: anywhere;
     word-break: break-word;
 }
 .term-panel-output p a:hover{
-    color: #cbeeff;
+    color: #9ee7ff;
 }
 .term-panel-output .error{
-    color: #ff6b68;
+    color: #ff5a6f;
 }
 .term-panel-output .line-help{
-    color: #9cdcfe;
+    color: #55d4ff;
 }
 .term-panel-output .line-status{
-    color: #dcdcaa;
+    color: #ffef8a;
 }
 .term-panel-output .line-ok{
-    color: #4ec9b0;
+    color: #2cff9f;
 }
 .term-panel-output .line-warn{
-    color: #d7ba7d;
+    color: #ffb347;
 }
 .term-panel-output .line-theme{
-    color: #c586c0;
+    color: #ff8dff;
 }
 .term-panel-output .line-mode{
-    color: #ce9178;
+    color: #ff9b64;
 }
 .term-panel-output .line-whoami{
-    color: #b5cea8;
+    color: #96ff8e;
 }
 .term-panel-output .ascii-art{
     overflow-wrap: normal;
@@ -617,16 +617,21 @@ body.boot-active .utility-terminal{
     flex-wrap: wrap;
     gap: 0.45rem;
     padding: 0.6rem 1rem 0.9rem;
-    border-top: 1px solid #2c2c2c;
+    border-top: 1px solid #2e5ea8;
 }
 .term-panel-chip{
-    background: #111;
-    border: 1px solid #3f3f3f;
-    color: #e0e0e0;
+    background: #10243f;
+    border: 1px solid #3d8cff;
+    color: #cfeaff;
     border-radius: 3px;
     padding: 0.38rem 0.8rem;
     font-size: 1.05rem;
     font-family: Consolas, 'Cascadia Mono', 'Courier New', monospace;
+}
+.term-panel-chip:hover{
+    background: #18355d;
+    border-color: #7fb8ff;
+    color: #ffffff;
 }
 .term-panel-output .term-input-row{
     display: flex;
@@ -637,23 +642,32 @@ body.boot-active .utility-terminal{
     color: #f1f1f1;
     white-space: nowrap;
 }
-.term-panel-output .term-inline-input{
+.term-panel-output .term-inline-wrap{
+    position: relative;
     display: inline-block;
     flex: 0 1 auto;
     max-width: calc(100% - 1.5ch);
     min-width: 1ch;
+}
+.term-panel-output .term-inline-input{
+    display: inline-block;
+    width: 100%;
     outline: none;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-    word-break: break-word;
+    white-space: pre;
+    overflow-wrap: normal;
+    word-break: normal;
     caret-color: transparent;
 }
 .term-panel-output .term-inline-cursor{
-    color: #f1f1f1;
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #fff200;
     font-weight: 900;
-    transform: scaleY(1.9);
+    transform: translateX(calc(var(--cursor-index, 0) * 1ch)) scaleY(1.9);
     transform-origin: center;
     animation: terminalUnderscoreBlink 1s steps(1, end) infinite;
+    pointer-events: none;
 }
 
 @keyframes terminalUnderscoreBlink{
