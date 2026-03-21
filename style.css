@@ -419,7 +419,7 @@ body.boot-active{
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     word-break: break-word;
-    caret-color: transparent;
+    caret-color: #56f7c0;
 }
 .boot-command:focus,
 .boot-command:focus-visible{
@@ -432,7 +432,7 @@ body.boot-active{
     line-height: 1;
     font-family: 'IBM Plex Mono', monospace;
     font-weight: 900;
-    transform: scaleY(1.9);
+    transform: scaleX(1.18) scaleY(1.9);
     transform-origin: center;
     animation: terminalUnderscoreBlink 1s steps(1, end) infinite;
 }
@@ -606,12 +606,12 @@ body.boot-active .utility-terminal{
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     word-break: break-word;
-    caret-color: transparent;
+    caret-color: #f1f1f1;
 }
 .term-panel-output .term-inline-cursor{
     color: #f1f1f1;
     font-weight: 900;
-    transform: scaleY(1.9);
+    transform: scaleX(1.18) scaleY(1.9);
     transform-origin: center;
     animation: terminalUnderscoreBlink 1s steps(1, end) infinite;
 }
