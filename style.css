@@ -612,6 +612,25 @@ body.boot-active .utility-terminal{
     word-break: normal;
     white-space: pre;
 }
+.term-panel-output .term-media-card{
+    border: 1px solid #2e5ea8;
+    background: #0a1628;
+    border-radius: 6px;
+    padding: 0.55rem;
+    box-shadow: 0 0 14px rgba(66, 200, 255, 0.14);
+}
+.term-panel-output .term-media-title{
+    margin: 0 0 0.45rem;
+    color: #55d4ff;
+    font-size: 1.05rem;
+    font-family: Consolas, 'Cascadia Mono', 'Courier New', monospace;
+}
+.term-panel-output .term-media-frame{
+    width: 100%;
+    border: none;
+    border-radius: 4px;
+    background: #000;
+}
 .term-panel-suggestions{
     display: flex;
     flex-wrap: wrap;

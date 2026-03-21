@@ -475,7 +475,7 @@ function initializeUtilityTerminal() {
         matches: [],
         index: -1
     };
-    var baseChips = ['help', 'status', 'set theme futuristic', 'set mode lite', 'goto contact', 'neofetch', 'joke', 'black hole', 'whoami'];
+    var baseChips = ['help', 'status', 'set theme futuristic', 'set mode lite', 'goto contact', 'neofetch', 'joke', 'black hole', 'whoami', 'play song'];
     var currentDir = '~';
     var projectDir = '~/portfolio';
     var projectFiles = {
@@ -483,37 +483,35 @@ function initializeUtilityTerminal() {
             title: 'Sandboxed Remote Code Executor',
             intro: 'Secure sandboxed code execution with Docker isolation and real-time job status updates.',
             repo: 'https://github.com/Sandrocottus1/sandboxed_code_execution_platform',
-            live: 'https://sandrocottus1.github.io/Portfolio/'
+            live: 'https://codexecutor.tech/'
         },
         'finboard.txt': {
             title: 'FinBoard',
             intro: 'Responsive Next.js dashboard with WebSockets and smooth mobile interactions.',
             repo: 'https://github.com/Sandrocottus1/FinBoard',
-            live: 'https://sandrocottus1.github.io/Portfolio/'
+            live: 'https://fin-board-theta.vercel.app'
         },
         'rag.txt': {
             title: 'Internal Knowledge Assistant (RAG)',
             intro: 'Streamlit + FAISS assistant for retrieval-augmented responses over internal knowledge.',
             repo: 'https://github.com/Sandrocottus1/RAG_based_AI_Assistant.git',
-            live: 'https://sandrocottus1.github.io/Portfolio/'
+            live: 'https://rag-agent-tps6p.ondigitalocean.app/'
         },
         'shared-cart.txt': {
             title: 'Shared-Cart',
             intro: 'Realtime collaborative cart concept where multiple users shop together in sync.',
             repo: 'https://github.com/zordican/walmart-frontend',
-            live: 'https://sandrocottus1.github.io/Portfolio/'
+            live: 'https://sharedcart-system.vercel.app/'
         },
         'assignmentkaro.txt': {
             title: 'AssignmentKaro.com',
             intro: 'Full-stack platform built with PHP and MySQL for student support workflows.',
-            repo: 'https://github.com/Sandrocottus1/AssignmentKaro.com',
-            live: 'https://sandrocottus1.github.io/Portfolio/'
+            repo: 'https://github.com/Sandrocottus1/AssignmentKaro.com'
         },
         'hospitalsnearme.txt': {
             title: 'HospitalsNearme',
             intro: 'Hospital discovery and slot booking solution built during Smart India Hackathon.',
-            repo: 'https://github.com/Sandrocottus1/Hospitals',
-            live: 'https://sandrocottus1.github.io/Portfolio/'
+            repo: 'https://github.com/Sandrocottus1/Hospitals'
         }
     };
     var sectionAliases = {
@@ -809,6 +807,34 @@ function initializeUtilityTerminal() {
         output.scrollTop = output.scrollHeight;
     }
 
+    function writeSpotifyEmbed(title, embedUrl) {
+        var wrap = document.createElement('div');
+        wrap.className = 'term-media-card';
+
+        var heading = document.createElement('p');
+        heading.className = 'term-media-title';
+        heading.textContent = '[music] ' + title;
+        wrap.appendChild(heading);
+
+        var frame = document.createElement('iframe');
+        frame.className = 'term-media-frame';
+        frame.src = embedUrl;
+        frame.loading = 'lazy';
+        frame.width = '100%';
+        frame.height = '152';
+        frame.frameBorder = '0';
+        frame.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+        frame.referrerPolicy = 'strict-origin-when-cross-origin';
+        wrap.appendChild(frame);
+
+        if (commandRow && output.contains(commandRow)) {
+            output.insertBefore(wrap, commandRow);
+        } else {
+            output.appendChild(wrap);
+        }
+        output.scrollTop = output.scrollHeight;
+    }
+
     function writePromptLine(raw) {
         var row = document.createElement('p');
         row.className = 'line-prompt';
@@ -925,7 +951,7 @@ function initializeUtilityTerminal() {
             writeLine('[help] set mode <full|balanced|lite>');
             writeLine('[help] goto/go/open/nav <home|about|portfolio|services|contact>');
             writeLine('[help] fs: cd <portfolio|..|~>, ls, pwd, cat/type/file <name>');
-            writeLine('[help] fun: neofetch, joke, black hole, whoami');
+            writeLine('[help] fun: neofetch, joke, black hole, whoami, play song');
             paintChips(['status', 'themes', 'modes', 'goto portfolio', 'close']);
             return;
         }
@@ -1004,7 +1030,9 @@ function initializeUtilityTerminal() {
             }
             writeLine(projectInfo.title + ': ' + projectInfo.intro);
             writeLine('repo: ' + projectInfo.repo);
-            writeLine('live: ' + projectInfo.live);
+            if (projectInfo.live) {
+                writeLine('live: ' + projectInfo.live);
+            }
             return;
         }
         if (command === 'close' || command === 'exit') {
@@ -1053,6 +1081,13 @@ function initializeUtilityTerminal() {
             writeLine('leetcode: https://leetcode.com/u/itsmearyan0205/');
             writeLine('codeforces: https://codeforces.com/profile/itsmearyan0205');
             writeLine('status: Actively seeking opportunities 🚀');
+            return;
+        }
+        if (command === 'play song') {
+            writeLine('[ok] loading La Mentira in terminal player...');
+            writeLine('[status] clip target: 1:56 to 2:18 (22s).');
+            writeLine('[status] if playback does not auto-seek, drag the timeline to 1:56 and stop at 2:18.');
+            writeSpotifyEmbed('La Mentira - Luis Miguel', 'https://open.spotify.com/embed/track/3wogsSWyEEu5eVgLqUqySF?utm_source=generator&t=116');
             return;
         }
         if (command.indexOf('set theme ') === 0) {
