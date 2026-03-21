@@ -476,7 +476,7 @@ function initializeUtilityTerminal() {
         index: -1
     };
     var baseChips = ['help', 'status', 'set theme futuristic', 'set mode lite', 'goto contact', 'neofetch', 'joke', 'black hole', 'whoami', 'play song'];
-    var spotifyEmbedUrl = 'https://open.spotify.com/embed/track/3wogsSWyEEu5eVgLqUqySF?utm_source=generator&t=116';
+    var spotifyEmbedUrl = 'https://open.spotify.com/embed/track/0RsH8g8DxdYZgdGcod5I36?utm_source=generator';
     var spotifyWarmFrame = null;
     var currentDir = '~';
     var projectDir = '~/portfolio';
@@ -1136,10 +1136,8 @@ function initializeUtilityTerminal() {
             return;
         }
         if (command === 'play song') {
-            writeLine('[ok] loading La Mentira in terminal player...');
-            writeLine('[status] clip target: 1:56 to 2:18 (22s).');
-            writeLine('[status] if playback does not auto-seek, drag the timeline to 1:56 and stop at 2:18.');
-            writeSpotifyEmbed('La Mentira - Luis Miguel', spotifyEmbedUrl);
+            writeLine('[ok] loading Les - Instrumental Slowed in terminal player...');
+            writeSpotifyEmbed('Les - Instrumental Slowed', spotifyEmbedUrl);
             return;
         }
         if (command.indexOf('set theme ') === 0) {
