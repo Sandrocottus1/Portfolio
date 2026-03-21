@@ -846,6 +846,23 @@ function initializeUtilityTerminal() {
         output.scrollTop = output.scrollHeight;
     }
 
+    function stopTerminalMediaPlayback() {
+        var mediaCards = output.querySelectorAll('.term-media-card');
+        mediaCards.forEach(function(card) {
+            var frame = card.querySelector('iframe');
+            if (frame) {
+                frame.src = 'about:blank';
+            }
+            card.remove();
+        });
+        if (spotifyWarmFrame) {
+            spotifyWarmFrame.src = 'about:blank';
+            spotifyWarmFrame.remove();
+            spotifyWarmFrame = null;
+            setTimeout(prewarmSpotify, 250);
+        }
+    }
+
     function prewarmSpotify() {
         if (spotifyWarmFrame) {
             return;
@@ -1071,6 +1088,7 @@ function initializeUtilityTerminal() {
         }
         if (command === 'close' || command === 'exit') {
             writeLine('[ok] minimizing terminal');
+            stopTerminalMediaPlayback();
             setTimeout(closePanel, 120);
             return;
         }
@@ -1114,7 +1132,7 @@ function initializeUtilityTerminal() {
             writeLine('github: https://github.com/Sandrocottus1');
             writeLine('leetcode: https://leetcode.com/u/_aryan0205/');
             writeLine('codeforces: https://codeforces.com/profile/itsmearyan0205');
-            writeLine('status: Actively seeking opportunities 🚀');
+            writeLine('status: Actively seeking opportunities ');
             return;
         }
         if (command === 'play song') {
@@ -1160,7 +1178,10 @@ function initializeUtilityTerminal() {
         closePanel();
     });
 
-    close.addEventListener('click', closePanel);
+    close.addEventListener('click', function() {
+        stopTerminalMediaPlayback();
+        closePanel();
+    });
 
     output.addEventListener('click', function() {
         if (!panel.hidden) {
