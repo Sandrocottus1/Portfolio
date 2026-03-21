@@ -20,14 +20,14 @@
             </div>
             <div class="boot-window-body">
                 <p class="boot-line">Portfolio shell v1.0.0</p>
-                <p class="boot-line">Type: <span>sudo open the app -y</span></p>
-                <p class="boot-line">Or use: <span>open app</span></p>
+                <p class="boot-line">Type: <span>ssh portfolio@aryan.dev -p 2220</span></p>
+                <p class="boot-line">Password: <span>greetings3000</span></p>
                 <div class="boot-output" id="boot-output" aria-live="polite"></div>
                 <div class="boot-suggestions" id="boot-suggestions" aria-label="Helpful command suggestions"></div>
                 <form class="boot-form" id="boot-form" autocomplete="off">
                     <label for="boot-command" class="boot-prompt">visitor@portfolio:~$</label>
-                    <input type="text" id="boot-command" class="boot-command" placeholder="sudo open the app -y" spellcheck="false" />
-                    <button type="submit" class="boot-run">Run</button>
+                    <span id="boot-command" class="boot-command" contenteditable="true" role="textbox" aria-label="Startup terminal command input" spellcheck="false"></span>
+                    <span class="boot-inline-cursor" aria-hidden="true">_</span>
                 </form>
                 <button type="button" class="boot-skip" id="boot-skip">Quick open</button>
             </div>
@@ -381,21 +381,17 @@
     </div>
 </footer>
 <aside class="utility-terminal" id="utility-terminal" aria-label="On-demand terminal">
-    <button type="button" class="term-toggle" id="term-toggle" aria-expanded="false" aria-controls="term-panel">
+    <button type="button" class="term-toggle" id="term-toggle" aria-expanded="true" aria-controls="term-panel">
         <i class="fa-solid fa-terminal" aria-hidden="true"></i>
         Terminal
     </button>
-    <div class="term-panel" id="term-panel" hidden>
+    <div class="term-panel" id="term-panel">
         <div class="term-panel-head">
             <p>live-shell</p>
             <button type="button" class="term-close" id="term-close" aria-label="Close terminal">x</button>
         </div>
         <div class="term-panel-output" id="term-panel-output" aria-live="polite"></div>
         <div class="term-panel-suggestions" id="term-panel-suggestions"></div>
-        <form class="term-panel-form" id="term-panel-form" autocomplete="off">
-            <label for="term-panel-input">user@portfolio:~$</label>
-            <input type="text" id="term-panel-input" spellcheck="false" placeholder="help" />
-        </form>
     </div>
 </aside>
 <script src="https://unpkg.com/scrollreveal"></script>

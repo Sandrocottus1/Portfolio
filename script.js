@@ -27,24 +27,30 @@ const typed=new Typed('.multiple-text',{
 function initializeBootShell() {
     var shell = document.getElementById('boot-shell');
     var form = document.getElementById('boot-form');
+    var promptLabel = form ? form.querySelector('.boot-prompt') : null;
     var input = document.getElementById('boot-command');
     var output = document.getElementById('boot-output');
     var suggestions = document.getElementById('boot-suggestions');
     var skip = document.getElementById('boot-skip');
-    var runBtn = form ? form.querySelector('.boot-run') : null;
-    if (!shell || !form || !input || !output || !suggestions || !skip || !runBtn) {
+    if (!shell || !form || !promptLabel || !input || !output || !suggestions || !skip) {
         return;
     }
 
     document.body.classList.add('boot-active');
     input.focus();
+    setCaretToEnd(input);
+    
     var history = [];
     var historyIndex = -1;
     var isBusy = false;
     var prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var outputQueue = Promise.resolve();
 
+    var remoteOpenCommand = 'ssh portfolio@aryan.dev -p 2220';
+    var remotePassword = 'greetings3000';
+    var awaitingRemotePassword = false;
     var openCommands = [
+        remoteOpenCommand,
         'sudo open the app -y',
         'sudo open app -y',
         'open app',
@@ -52,7 +58,7 @@ function initializeBootShell() {
         'start app',
         'open the app'
     ];
-    var defaultSuggestions = ['help', 'sudo open the app -y', 'set theme futuristic', 'set mode lite', 'status'];
+    var defaultSuggestions = ['help', remoteOpenCommand, 'set theme futuristic', 'set mode lite', 'status'];
     var sectionAliases = {
         home: 'home',
         about: 'about',
@@ -63,6 +69,44 @@ function initializeBootShell() {
         projects: 'portfolio',
         contact: 'contact'
     };
+
+    function setCaretToEnd(node) {
+        if (!node) {
+            return;
+        }
+        var selection = window.getSelection();
+        if (!selection) {
+            return;
+        }
+        var range = document.createRange();
+        range.selectNodeContents(node);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+
+    var actualPasswordInput = '';
+
+    function focusInput() {
+        input.focus();
+        setCaretToEnd(input);
+    }
+
+    function setInputValue(value) {
+        input.textContent = value;
+        actualPasswordInput = '';
+        setCaretToEnd(input);
+    }
+
+    function getInputValue() {
+        return (input.textContent || '').replace(/\n/g, '');
+    }
+
+    function setPrompt(waitingForPassword) {
+        if (promptLabel) {
+            promptLabel.textContent = waitingForPassword ? 'password:' : 'visitor@portfolio:~$';
+        }
+    }
 
     function delay(ms) {
         return new Promise(function(resolve) {
@@ -117,9 +161,13 @@ function initializeBootShell() {
 
     function setBusyState(state) {
         isBusy = state;
-        input.disabled = state;
-        runBtn.disabled = state;
-        skip.disabled = state;
+        if (input) {
+            input.setAttribute('contenteditable', state ? 'false' : 'true');
+            input.setAttribute('aria-disabled', state ? 'true' : 'false');
+        }
+        if (skip) {
+            skip.disabled = state;
+        }
     }
 
     function paintSuggestions(commands) {
@@ -133,8 +181,8 @@ function initializeBootShell() {
                 if (isBusy) {
                     return;
                 }
-                input.value = commandText;
-                input.focus();
+                setInputValue(commandText);
+                focusInput();
             });
             suggestions.appendChild(chip);
         });
@@ -203,14 +251,15 @@ function initializeBootShell() {
         enqueueLine('  goto/go/open/cd <home|about|services|portfolio|contact>');
         enqueueLine('  set theme <editorial|futuristic|minimal>');
         enqueueLine('  set mode <full|balanced|lite>');
-        enqueueLine('  sudo open the app -y');
+        enqueueLine('  ' + remoteOpenCommand);
+        enqueueLine('  password: ' + remotePassword);
         paintSuggestions([
             'themes',
             'modes',
             'goto services',
             'set theme futuristic',
             'set mode full',
-            'sudo open the app -y'
+            remoteOpenCommand
         ]);
     }
 
@@ -255,7 +304,22 @@ function initializeBootShell() {
         if (!command) {
             return;
         }
-        enqueueLine('> ' + rawCommand);
+
+        if (awaitingRemotePassword) {
+            enqueueLine('password: ' + new Array((rawCommand || '').length + 1).join('*'));
+            if ((rawCommand || '').trim() === remotePassword) {
+                awaitingRemotePassword = false;
+                setPrompt(false);
+                enqueueLine('[auth] access granted. opening portfolio shell ...');
+                openPortfolio();
+                return;
+            }
+            enqueueLine('[error] invalid password. try again.', 'error');
+            enqueueLine('[auth] password hint is shown above in startup details.');
+            return;
+        }
+
+        enqueueLine('visitor@portfolio:~$ ' + rawCommand);
 
         if (command === 'help' || command === '?') {
             showHelp();
@@ -298,6 +362,12 @@ function initializeBootShell() {
             openPortfolio(sectionFromCommand);
             return;
         }
+        if (command === normalize(remoteOpenCommand)) {
+            awaitingRemotePassword = true;
+            setPrompt(true);
+            enqueueLine('[auth] remote endpoint: aryan.dev:2220');
+            return;
+        }
         if (openCommands.indexOf(command) !== -1) {
             openPortfolio();
             return;
@@ -312,30 +382,41 @@ function initializeBootShell() {
         if (isBusy) {
             return;
         }
-        var command = input.value || '';
+        var command = getInputValue();
         if (!command.trim()) {
             return;
         }
         history.push(command);
         historyIndex = history.length;
         handleCommand(command);
-        input.value = '';
+        setInputValue('');
     });
 
     input.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            form.requestSubmit();
+            return;
+        }
         if (!history.length) {
             return;
         }
         if (event.key === 'ArrowUp') {
             event.preventDefault();
             historyIndex = Math.max(0, historyIndex - 1);
-            input.value = history[historyIndex];
+            setInputValue(history[historyIndex]);
             return;
         }
         if (event.key === 'ArrowDown') {
             event.preventDefault();
             historyIndex = Math.min(history.length, historyIndex + 1);
-            input.value = historyIndex === history.length ? '' : history[historyIndex];
+            setInputValue(historyIndex === history.length ? '' : history[historyIndex]);
+        }
+    });
+
+    form.addEventListener('click', function() {
+        if (!isBusy) {
+            focusInput();
         }
     });
 
@@ -349,6 +430,7 @@ function initializeBootShell() {
     });
 
     paintSuggestions(defaultSuggestions);
+    setPrompt(false);
     enqueueLine('[hint] type help to explore interactive commands.');
 }
 
@@ -371,12 +453,13 @@ function initializeUtilityTerminal() {
     var close = document.getElementById('term-close');
     var output = document.getElementById('term-panel-output');
     var suggestions = document.getElementById('term-panel-suggestions');
-    var form = document.getElementById('term-panel-form');
-    var promptLabel = form ? form.querySelector('label') : null;
-    var input = document.getElementById('term-panel-input');
-    if (!root || !toggle || !panel || !head || !close || !output || !suggestions || !form || !promptLabel || !input) {
+    if (!root || !toggle || !panel || !head || !close || !output || !suggestions) {
         return;
     }
+
+    var commandRow = null;
+    var promptLabel = null;
+    var input = null;
 
     var history = [];
     var historyIndex = -1;
@@ -460,7 +543,105 @@ function initializeUtilityTerminal() {
     }
 
     function updatePrompt() {
-        promptLabel.textContent = 'user@portfolio:' + currentDir + '$';
+        if (promptLabel) {
+            promptLabel.textContent = 'user@portfolio:' + currentDir + '$';
+        }
+    }
+
+    function setCaretToEnd(node) {
+        if (!node) {
+            return;
+        }
+        var selection = window.getSelection();
+        if (!selection) {
+            return;
+        }
+        var range = document.createRange();
+        range.selectNodeContents(node);
+        range.collapse(false);
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }
+
+    function focusInput() {
+        if (!input) {
+            return;
+        }
+        input.focus();
+        setCaretToEnd(input);
+    }
+
+    function setInputValue(value) {
+        if (!input) {
+            return;
+        }
+        input.textContent = value;
+        setCaretToEnd(input);
+    }
+
+    function getInputValue() {
+        if (!input) {
+            return '';
+        }
+        return (input.textContent || '').replace(/\n/g, '');
+    }
+
+    function ensureCommandRow() {
+        if (commandRow && output.contains(commandRow)) {
+            return;
+        }
+        commandRow = document.createElement('p');
+        commandRow.className = 'term-input-row';
+
+        promptLabel = document.createElement('span');
+        promptLabel.className = 'term-input-prompt';
+        commandRow.appendChild(promptLabel);
+
+        input = document.createElement('span');
+        input.className = 'term-inline-input';
+        input.contentEditable = 'true';
+        input.setAttribute('role', 'textbox');
+        input.setAttribute('aria-label', 'Terminal command input');
+        input.setAttribute('spellcheck', 'false');
+        commandRow.appendChild(input);
+
+        var inlineCursor = document.createElement('span');
+        inlineCursor.className = 'term-inline-cursor';
+        inlineCursor.setAttribute('aria-hidden', 'true');
+        inlineCursor.textContent = '_';
+        commandRow.appendChild(inlineCursor);
+
+        output.appendChild(commandRow);
+        updatePrompt();
+
+        input.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                var value = getInputValue();
+                if (!value.trim()) {
+                    setInputValue('');
+                    return;
+                }
+                history.push(value);
+                historyIndex = history.length;
+                handleCommand(value);
+                setInputValue('');
+                return;
+            }
+            if (!history.length) {
+                return;
+            }
+            if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                historyIndex = Math.max(0, historyIndex - 1);
+                setInputValue(history[historyIndex]);
+            }
+            if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                historyIndex = Math.min(history.length, historyIndex + 1);
+                setInputValue(historyIndex === history.length ? '' : history[historyIndex]);
+            }
+        });
     }
 
     function normalizeFileName(value) {
@@ -548,7 +729,11 @@ function initializeUtilityTerminal() {
         if (className) {
             row.classList.add(className);
         }
-        output.appendChild(row);
+        if (commandRow && output.contains(commandRow)) {
+            output.insertBefore(row, commandRow);
+        } else {
+            output.appendChild(row);
+        }
         output.scrollTop = output.scrollHeight;
     }
 
@@ -560,8 +745,8 @@ function initializeUtilityTerminal() {
             chip.className = 'term-panel-chip';
             chip.textContent = cmd;
             chip.addEventListener('click', function() {
-                input.value = cmd;
-                input.focus();
+                setInputValue(cmd);
+                focusInput();
             });
             suggestions.appendChild(chip);
         });
@@ -571,7 +756,7 @@ function initializeUtilityTerminal() {
         panel.hidden = false;
         toggle.setAttribute('aria-expanded', 'true');
         setTimeout(function() {
-            input.focus();
+            focusInput();
         }, 50);
     }
 
@@ -601,12 +786,23 @@ function initializeUtilityTerminal() {
         writeLine('[ok] moved to #' + sectionId);
     }
 
+    function renderTerminalDashboard() {
+        writeLine('Portfolio shell :: live overview');
+        writeLine('--------------------------------------------');
+        writeLine('user: aryan yadav');
+        writeLine('role: Full Stack Developer');
+        writeLine('cwd: ' + currentDir);
+        writeLine('quick start: help | ls | cd portfolio | whoami');
+        writeLine('featured files: sandboxed.txt, finboard.txt, rag.txt');
+        writeLine('tip: use ls -a for hidden entries');
+    }
+
     function handleCommand(raw) {
         var command = normalize(raw);
         if (!command) {
             return;
         }
-        writeLine('> ' + raw);
+        writeLine('user@portfolio:' + currentDir + '$ ' + raw);
 
         if (command === 'help' || command === '?') {
             writeLine('[help] commands: help, status, clear, close, themes, modes');
@@ -634,7 +830,9 @@ function initializeUtilityTerminal() {
         }
         if (command === 'clear') {
             output.innerHTML = '';
+            ensureCommandRow();
             writeLine('[ok] terminal cleared');
+            renderTerminalDashboard();
             paintChips(baseChips);
             return;
         }
@@ -777,36 +975,9 @@ function initializeUtilityTerminal() {
 
     close.addEventListener('click', closePanel);
 
-    form.addEventListener('submit', function(event) {
-        event.preventDefault();
-        var value = input.value || '';
-        if (!value.trim()) {
-            return;
-        }
-        history.push(value);
-        historyIndex = history.length;
-        handleCommand(value);
-        input.value = '';
-    });
-
-    input.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            form.requestSubmit();
-            return;
-        }
-        if (!history.length) {
-            return;
-        }
-        if (event.key === 'ArrowUp') {
-            event.preventDefault();
-            historyIndex = Math.max(0, historyIndex - 1);
-            input.value = history[historyIndex];
-        }
-        if (event.key === 'ArrowDown') {
-            event.preventDefault();
-            historyIndex = Math.min(history.length, historyIndex + 1);
-            input.value = historyIndex === history.length ? '' : history[historyIndex];
+    output.addEventListener('click', function() {
+        if (!panel.hidden) {
+            focusInput();
         }
     });
 
@@ -833,9 +1004,12 @@ function initializeUtilityTerminal() {
         closePanel();
     });
 
+    toggle.setAttribute('aria-expanded', panel.hidden ? 'false' : 'true');
+
     paintChips(baseChips);
+    ensureCommandRow();
     updatePrompt();
-    writeLine('[hint] use help for commands');
+    renderTerminalDashboard();
 }
 
 function initializePerformanceMode() {
@@ -961,14 +1135,60 @@ function initializeThemeSwitcher() {
     });
 }
 
+var themeTransitionTimer = null;
+var themeSwapTimer = null;
+var themeFadeTimer = null;
+
+function getCurrentThemeName() {
+    var root = document.body;
+    if (!root) {
+        return 'editorial';
+    }
+    if (root.classList.contains('theme-futuristic')) {
+        return 'futuristic';
+    }
+    if (root.classList.contains('theme-minimal')) {
+        return 'minimal';
+    }
+    return 'editorial';
+}
+
 function applyTheme(themeName) {
     var root = document.body;
     if (!root) {
         return;
     }
     var safeTheme = themeName || 'editorial';
-    root.classList.remove('theme-editorial', 'theme-futuristic', 'theme-minimal');
-    root.classList.add('theme-' + safeTheme);
+    var currentTheme = getCurrentThemeName();
+
+    if (themeTransitionTimer) {
+        clearTimeout(themeTransitionTimer);
+    }
+    if (themeSwapTimer) {
+        clearTimeout(themeSwapTimer);
+    }
+    if (themeFadeTimer) {
+        clearTimeout(themeFadeTimer);
+    }
+
+    if (safeTheme !== currentTheme) {
+        root.classList.add('theme-fade-active');
+        themeSwapTimer = setTimeout(function() {
+            root.classList.add('theme-transition');
+            root.classList.remove('theme-editorial', 'theme-futuristic', 'theme-minimal');
+            root.classList.add('theme-' + safeTheme);
+        }, 130);
+        themeTransitionTimer = setTimeout(function() {
+            root.classList.remove('theme-transition');
+        }, 640);
+        themeFadeTimer = setTimeout(function() {
+            root.classList.remove('theme-fade-active');
+        }, 500);
+    } else {
+        root.classList.remove('theme-editorial', 'theme-futuristic', 'theme-minimal');
+        root.classList.add('theme-' + safeTheme);
+    }
+
     localStorage.setItem('portfolio-theme', safeTheme);
     var buttons = document.querySelectorAll('.theme-btn');
     buttons.forEach(function(button) {
