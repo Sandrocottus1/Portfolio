@@ -475,9 +475,38 @@ function initializeUtilityTerminal() {
         matches: [],
         index: -1
     };
-    var baseChips = ['help', 'status', 'set theme futuristic', 'set mode lite', 'goto contact', 'neofetch', 'joke', 'black hole', 'whoami', 'play song'];
+    var baseChips = ['help', 'status', 'clear', 'whoami', 'skills', 'links', 'stats', 'neofetch', 'play song', 'joke', 'black hole', 'weather', 'time'];
     var spotifyEmbedUrl = 'https://open.spotify.com/embed/track/4CprMw8YzWNAuUg7hchwnB?utm_source=generator';
     var spotifyWarmFrame = null;
+    var customAliases = {};
+    var easterEggTriggered = false;
+
+    function playTerminalBeep() {
+        try {
+            var audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            var oscillator = audioContext.createOscillator();
+            var gain = audioContext.createGain();
+            oscillator.connect(gain);
+            gain.connect(audioContext.destination);
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        } catch (e) {
+            // Fallback: silent if Web Audio API unavailable
+        }
+    }
+
+    function getAsciiArt(type) {
+        var art = {
+            banner: '     ___   ___  __  ____  __\n    / _ | / _ \\/  |/  / |/ /\n   / __ |/ , _/ /|_/ /|   /\n  / ___ / /| |/ /  / /|_|\n /_/  |_/_/ |_/_/  /_/\n',
+            matrix: '  ___   __  _  ___\n /   | / / / |/ _ |\n/ /| |/ /_/ / / __ |\n/_/ |_/__/___/ /_/ |_|\n',
+            hack: '  _____     __  __   ___   __ __\n |_   _|   /  |/  | / _ | / //_/\n   | |    / /|_/ / / __ |/ ,<\n   | |   / /  / / / /_/ / /| |\n   |_|  /_/  /_/  \\____/_/ |_|\n'
+        };
+        return art[type] || art.banner;
+    }
     var currentDir = '~';
     var projectDir = '~/portfolio';
     var projectFiles = {
@@ -659,6 +688,28 @@ function initializeUtilityTerminal() {
         syncInlineCursorPosition();
 
         input.addEventListener('keydown', function(event) {
+            if (event.key === 'Tab') {
+                event.preventDefault();
+                var currentInput = getInputValue().trim();
+                var suggestions = getMatchingSuggestions(currentInput);
+                if (suggestions.length === 1) {
+                    setInputValue(suggestions[0]);
+                } else if (suggestions.length > 1) {
+                    writeLine('[autocomplete] ' + suggestions.join(' | '));
+                    if (currentInput) {
+                        var commonPrefix = suggestions.reduce(function(prefix, cmd) {
+                            while (!cmd.startsWith(prefix) && prefix.length > 0) {
+                                prefix = prefix.slice(0, -1);
+                            }
+                            return prefix;
+                        });
+                        if (commonPrefix && commonPrefix.length > currentInput.length) {
+                            setInputValue(commonPrefix);
+                        }
+                    }
+                }
+                return;
+            }
             if (event.key === 'Enter') {
                 event.preventDefault();
                 var value = getInputValue();
@@ -673,6 +724,7 @@ function initializeUtilityTerminal() {
                 return;
             }
             if (!history.length) {
+                syncInlineCursorPosition();
                 return;
             }
             if (event.key === 'ArrowUp') {
@@ -684,6 +736,11 @@ function initializeUtilityTerminal() {
                 event.preventDefault();
                 historyIndex = Math.min(history.length, historyIndex + 1);
                 setInputValue(historyIndex === history.length ? '' : history[historyIndex]);
+            }
+            if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                setTimeout(function() {
+                    syncInlineCursorPosition();
+                }, 0);
             }
         });
 
@@ -958,6 +1015,29 @@ function initializeUtilityTerminal() {
         toggle.focus();
     }
 
+    var isMinimized = false;
+    var savedPanelWidth = '';
+    var savedPanelHeight = '';
+
+    function minimizePanel() {
+        isMinimized = true;
+        savedPanelWidth = panel.style.width || '';
+        savedPanelHeight = panel.style.height || '';
+        output.style.display = 'none';
+        suggestions.style.display = 'none';
+        panel.style.height = 'auto';
+        panel.classList.add('is-minimized');
+    }
+
+    function restorePanel() {
+        isMinimized = false;
+        output.style.display = 'grid';
+        suggestions.style.display = 'block';
+        panel.classList.remove('is-minimized');
+        panel.style.width = savedPanelWidth;
+        panel.style.height = savedPanelHeight;
+    }
+
     function getCurrentTheme() {
         if (document.body.classList.contains('theme-futuristic')) {
             return 'futuristic';
@@ -997,13 +1077,14 @@ function initializeUtilityTerminal() {
         writePromptLine(raw);
 
         if (command === 'help' || command === '?') {
-            writeLine('[help] commands: help, status, clear, close, themes, modes');
-            writeLine('[help] set theme <editorial|futuristic|minimal>');
-            writeLine('[help] set mode <full|balanced|lite>');
-            writeLine('[help] goto/go/open/nav <home|about|portfolio|services|contact>');
+            writeLine('[help] commands: help, whoami, skills, links, stats, status, clear');
+            writeLine('[help] info: neofetch, weather, time, joke, black hole, play song');
+            writeLine('[help] nav: goto/go/open <home|about|portfolio|services|contact>');
             writeLine('[help] fs: cd <portfolio|..|~>, ls, pwd, cat/type/file <name>');
-            writeLine('[help] fun: neofetch, joke, black hole, whoami, play song');
-            paintChips(['status', 'themes', 'modes', 'goto portfolio', 'close']);
+            writeLine('[help] config: set theme <editorial|futuristic|minimal>');
+            writeLine('[help] config: set mode <full|balanced|lite>');
+            writeLine('[help] alias: alias [name]="command" | alias -l | alias -c');
+            paintChips(['whoami', 'skills', 'links', 'stats', 'weather', 'time', 'play song']);
             return;
         }
         if (command === 'status') {
@@ -1138,6 +1219,7 @@ function initializeUtilityTerminal() {
         if (command === 'play song') {
             writeLine('[ok] now playing from spotify...');
             writeSpotifyEmbed('Now Playing', spotifyEmbedUrl);
+            writeLine('[status] now minimise this terminal and enjoy the portfolio with this as your background music 🎵');
             return;
         }
         if (command.indexOf('set theme ') === 0) {
@@ -1160,12 +1242,176 @@ function initializeUtilityTerminal() {
             writeLine('[ok] mode set to ' + mode);
             return;
         }
+        if (command === 'clear') {
+            output.innerHTML = '';
+            return;
+        }
+        if (command === 'skills') {
+            writeLine('[skills] tech stack & proficiency');
+            var skills = {
+                'JavaScript/Node.js': 85,
+                'React/Next.js': 80,
+                'Python': 75,
+                'Docker': 70,
+                'MongoDB': 80,
+                'PostgreSQL': 75,
+                'AWS/Cloud': 65,
+                'Web Design': 78
+            };
+            for (var skill in skills) {
+                if (skills.hasOwnProperty(skill)) {
+                    var percent = skills[skill];
+                    var filled = Math.floor(percent / 5);
+                    var empty = 20 - filled;
+                    var bar = '[' + Array(filled + 1).join('█') + Array(empty + 1).join('░') + '] ' + percent + '%';
+                    writeLine(skill.padEnd(20) + bar);
+                }
+            }
+            playTerminalBeep();
+            return;
+        }
+        if (command === 'links') {
+            writeLine('[links] connect with me');
+            writeLine('github     → https://github.com/Sandrocottus1');
+            writeLine('leetcode   → https://leetcode.com/u/_aryan0205/');
+            writeLine('codeforces → https://codeforces.com/profile/itsmearyan0205');
+            writeLine('linkedin   → (coming soon)');
+            writeLine('twitter    → (coming soon)');
+            writeLine('email      → contact via portfolio');
+            return;
+        }
+        if (command === 'stats') {
+            var projectCount = Object.keys(projectFiles).length;
+            writeLine('[stats] portfolio overview');
+            writeLine('├─ total projects: ' + projectCount);
+            writeLine('├─ languages used: 8+');
+            writeLine('├─ years coding: 4+');
+            writeLine('├─ active repositories: 12');
+            writeLine('└─ open source contrib: in progress');
+            playTerminalBeep();
+            return;
+        }
+        if (command === 'weather') {
+            var weatherOptions = [
+                '🌤️  Sunny & productive | 25°C | feels like AI will take over soon',
+                '🌦️  Partly cloudy | 22°C | good for debugging',
+                '⛈️  Thunderstorm alert | 19°C | perfect for coding marathons',
+                '🌈  Rainbow spotted | 23°C | luck is on your side',
+                '❄️  Snow time | 2°C | time to warm up with coffee'
+            ];
+            var weather = weatherOptions[Math.floor(Math.random() * weatherOptions.length)];
+            writeLine('[weather] ' + weather);
+            return;
+        }
+        if (command === 'time') {
+            var now = new Date();
+            var timeStr = now.toLocaleString('en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            writeLine('[time] ' + timeStr);
+            writeLine('[status] remember: the best time to code was yesterday, the second best is now 🚀');
+            return;
+        }
+        if (command === 'hack') {
+            writeLine('[hack] initiating matrix protocol...');
+            writeLine(getAsciiArt('hack'));
+            writeLine('[error] access denied. nice try! 😏');
+            playTerminalBeep();
+            playTerminalBeep();
+            return;
+        }
+        if (command === 'secret') {
+            writeLine('[secret] you found a hidden command! 🔓');
+            writeLine('[secret] here are more secrets:');
+            writeLine('  → try: hack, konami, matrix, nmap, scan');
+            writeLine('[secret] easter eggs activate achievement unlocked!');
+            playTerminalBeep();
+            return;
+        }
+        if (command === 'konami') {
+            writeLine('[konami] ↑ ↑ ↓ ↓ ← → ← → B A START');
+            writeLine(getAsciiArt('matrix'));
+            writeLine('[status] classic! welcome to the matrix 💊');
+            easterEggTriggered = true;
+            playTerminalBeep();
+            playTerminalBeep();
+            playTerminalBeep();
+            return;
+        }
+        if (command === 'matrix') {
+            writeLine('[matrix] "The Matrix has you..."');
+            writeLine('[status] full matrix mode would require performance compromise');
+            writeLine('[status] type "hack" for more easter eggs 🔌');
+            return;
+        }
+        if (command === 'nmap' || command === 'scan') {
+            writeLine('[scan] initiating network scan...');
+            writeLine('Scanning skills.local...');
+            writeLine('Host: aryan.dev is up (1.23ms latency)');
+            writeLine('Ports: JavaScript(open), React(open), Node.js(open), Python(open)');
+            writeLine('[ok] scan complete. target is full-stack capable.');
+            return;
+        }
+        if (command.indexOf('alias ') === 0) {
+            var aliasCmd = command.replace('alias ', '').trim();
+            if (aliasCmd === '-l') {
+                if (Object.keys(customAliases).length === 0) {
+                    writeLine('[status] no aliases defined. try: alias gm="goto portfolio"');
+                    return;
+                }
+                writeLine('[aliases] your custom shortcuts:');
+                for (var alias in customAliases) {
+                    if (customAliases.hasOwnProperty(alias)) {
+                        writeLine('  ' + alias + ' → ' + customAliases[alias]);
+                    }
+                }
+                return;
+            }
+            if (aliasCmd === '-c') {
+                customAliases = {};
+                writeLine('[ok] all aliases cleared');
+                return;
+            }
+            var eqIndex = aliasCmd.indexOf('=');
+            if (eqIndex > 0) {
+                var aliasName = aliasCmd.slice(0, eqIndex).trim();
+                var aliasValue = aliasCmd.slice(eqIndex + 1).trim().replace(/^["']|["']$/g, '');
+                customAliases[aliasName] = aliasValue;
+                writeLine('[ok] alias created: ' + aliasName + ' → ' + aliasValue);
+                return;
+            }
+            writeLine('[help] usage: alias name="command" | alias -l | alias -c');
+            return;
+        }
+        // Check if command is a custom alias
+        if (customAliases[command]) {
+            handleCommand(customAliases[command]);
+            return;
+        }
         var sectionId = extractSection(command);
         if (sectionId) {
             navigateTo(sectionId);
             return;
         }
         writeLine('[error] unknown command. type help', 'error');
+    }
+
+    // Command autocomplete
+    function getMatchingSuggestions(input) {
+        if (!input) {
+            return baseChips.slice(0, 8);
+        }
+        var lower = input.toLowerCase();
+        var allCommands = baseChips.concat(Object.keys(customAliases));
+        var matches = allCommands.filter(function(cmd) {
+            return cmd.toLowerCase().indexOf(lower) === 0;
+        });
+        return matches.slice(0, 5);
     }
 
     toggle.addEventListener('click', function() {
@@ -1180,6 +1426,21 @@ function initializeUtilityTerminal() {
         stopTerminalMediaPlayback();
         closePanel();
     });
+
+    var minimize = document.getElementById('term-minimize');
+    if (minimize) {
+        minimize.addEventListener('click', function() {
+            if (isMinimized) {
+                restorePanel();
+                minimize.textContent = '−';
+                minimize.setAttribute('aria-label', 'Minimize terminal');
+            } else {
+                minimizePanel();
+                minimize.textContent = '+';
+                minimize.setAttribute('aria-label', 'Restore terminal');
+            }
+        });
+    }
 
     output.addEventListener('click', function() {
         if (!panel.hidden) {

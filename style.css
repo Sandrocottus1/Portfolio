@@ -510,6 +510,12 @@ body.boot-active .utility-terminal{
 .term-panel[hidden]{
     display: none !important;
 }
+.term-panel.is-minimized{
+    grid-template-rows: auto 0 0;
+    height: auto;
+    min-height: 0;
+    resize: none;
+}
 .term-panel-head{
     display: flex;
     align-items: center;
@@ -528,6 +534,25 @@ body.boot-active .utility-terminal{
     font-size: 1.2rem;
     font-family: Consolas, 'Cascadia Mono', 'Courier New', monospace;
 }
+.term-panel-buttons{
+    display: flex;
+    gap: 0.5rem;
+}
+.term-minimize{
+    background: #1a2a3f;
+    color: #88bfff;
+    border: 1px solid #4a7ba7;
+    border-radius: 2px;
+    font-size: 1.1rem;
+    padding: 0.2rem 0.5rem;
+    font-family: Consolas, 'Cascadia Mono', 'Courier New', monospace;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.term-minimize:hover{
+    background: #2a3a4f;
+    border-color: #6a9bc7;
+}
 .term-close{
     background: #2a0f17;
     color: #ffdce6;
@@ -536,6 +561,11 @@ body.boot-active .utility-terminal{
     font-size: 1.1rem;
     padding: 0.2rem 0.5rem;
     font-family: Consolas, 'Cascadia Mono', 'Courier New', monospace;
+    cursor: pointer;
+}
+.term-close:hover{
+    background: #3a1f27;
+    border-color: #ff6fa0;
 }
 .term-panel-output{
     padding: 0.85rem 1rem;
