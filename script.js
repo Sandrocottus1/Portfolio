@@ -24,6 +24,96 @@ const typed=new Typed('.multiple-text',{
     loop:true,
 });
 
+var playCommandBeep = createCommandBeepPlayer();
+
+function createCommandBeepPlayer() {
+    var context = null;
+    var lastPlayedAt = 0;
+    var minGapMs = 35;
+    var fallbackDataUri = 'data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTAAAAAAECAwP0A/MCAPAAAAECAwP0A/MCAPAAAAECAwP0A/MCAPAAAAECAwP0A/MCAPAAAA';
+
+    function getContext() {
+        if (context) {
+            return context;
+        }
+        var AudioCtor = window.AudioContext || window.webkitAudioContext;
+        if (!AudioCtor) {
+            return null;
+        }
+        context = new AudioCtor();
+        return context;
+    }
+
+    function playFallbackBeep() {
+        try {
+            var audio = new Audio(fallbackDataUri);
+            audio.volume = 0.45;
+            audio.play();
+        } catch (e) {
+            // Ignore fallback failures.
+        }
+    }
+
+    function playWebAudioBeep(ctx) {
+        var now = ctx.currentTime + 0.002;
+        var end = now + 0.09;
+
+        var master = ctx.createGain();
+        var oscA = ctx.createOscillator();
+        var oscB = ctx.createOscillator();
+
+        master.gain.setValueAtTime(0.0001, now);
+        master.gain.linearRampToValueAtTime(0.22, now + 0.006);
+        master.gain.exponentialRampToValueAtTime(0.0001, end);
+
+        oscA.type = 'square';
+        oscA.frequency.setValueAtTime(1120, now);
+        oscA.frequency.exponentialRampToValueAtTime(920, end);
+
+        oscB.type = 'triangle';
+        oscB.frequency.setValueAtTime(560, now);
+        oscB.detune.setValueAtTime(7, now);
+
+        oscA.connect(master);
+        oscB.connect(master);
+        master.connect(ctx.destination);
+
+        oscA.start(now);
+        oscB.start(now + 0.001);
+        oscA.stop(end);
+        oscB.stop(end);
+    }
+
+    return function playBeep() {
+        var nowMs = Date.now();
+        if (nowMs - lastPlayedAt < minGapMs) {
+            return;
+        }
+        lastPlayedAt = nowMs;
+
+        try {
+            var ctx = getContext();
+            if (!ctx) {
+                playFallbackBeep();
+                return;
+            }
+
+            if (ctx.state === 'suspended') {
+                ctx.resume().then(function() {
+                    playWebAudioBeep(ctx);
+                }).catch(function() {
+                    playFallbackBeep();
+                });
+                return;
+            }
+
+            playWebAudioBeep(ctx);
+        } catch (e) {
+            playFallbackBeep();
+        }
+    };
+}
+
 function initializeBootShell() {
     var shell = document.getElementById('boot-shell');
     var form = document.getElementById('boot-form');
@@ -386,6 +476,7 @@ function initializeBootShell() {
         if (!command.trim()) {
             return;
         }
+        playCommandBeep();
         history.push(command);
         historyIndex = history.length;
         handleCommand(command);
@@ -482,21 +573,7 @@ function initializeUtilityTerminal() {
     var easterEggTriggered = false;
 
     function playTerminalBeep() {
-        try {
-            var audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            var oscillator = audioContext.createOscillator();
-            var gain = audioContext.createGain();
-            oscillator.connect(gain);
-            gain.connect(audioContext.destination);
-            oscillator.frequency.value = 800;
-            oscillator.type = 'sine';
-            gain.gain.setValueAtTime(0.1, audioContext.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.1);
-        } catch (e) {
-            // Fallback: silent if Web Audio API unavailable
-        }
+        playCommandBeep();
     }
 
     function getAsciiArt(type) {
@@ -717,6 +794,7 @@ function initializeUtilityTerminal() {
                     setInputValue('');
                     return;
                 }
+                playCommandBeep();
                 history.push(value);
                 historyIndex = history.length;
                 handleCommand(value);
