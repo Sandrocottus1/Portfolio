@@ -476,7 +476,7 @@ function initializeUtilityTerminal() {
         index: -1
     };
     var baseChips = ['help', 'status', 'set theme futuristic', 'set mode lite', 'goto contact', 'neofetch', 'joke', 'black hole', 'whoami', 'play song'];
-    var spotifyEmbedUrl = 'https://open.spotify.com/embed/track/0RsH8g8DxdYZgdGcod5I36?utm_source=generator';
+    var spotifyEmbedUrl = 'https://open.spotify.com/embed/track/4CprMw8YzWNAuUg7hchwnB?utm_source=generator';
     var spotifyWarmFrame = null;
     var currentDir = '~';
     var projectDir = '~/portfolio';
@@ -1136,8 +1136,8 @@ function initializeUtilityTerminal() {
             return;
         }
         if (command === 'play song') {
-            writeLine('[ok] loading Les - Instrumental Slowed in terminal player...');
-            writeSpotifyEmbed('Les - Instrumental Slowed', spotifyEmbedUrl);
+            writeLine('[ok] now playing from spotify...');
+            writeSpotifyEmbed('Now Playing', spotifyEmbedUrl);
             return;
         }
         if (command.indexOf('set theme ') === 0) {
