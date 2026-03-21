@@ -476,6 +476,8 @@ function initializeUtilityTerminal() {
         index: -1
     };
     var baseChips = ['help', 'status', 'set theme futuristic', 'set mode lite', 'goto contact', 'neofetch', 'joke', 'black hole', 'whoami', 'play song'];
+    var spotifyEmbedUrl = 'https://open.spotify.com/embed/track/3wogsSWyEEu5eVgLqUqySF?utm_source=generator&t=116';
+    var spotifyWarmFrame = null;
     var currentDir = '~';
     var projectDir = '~/portfolio';
     var projectFiles = {
@@ -816,15 +818,24 @@ function initializeUtilityTerminal() {
         heading.textContent = '[music] ' + title;
         wrap.appendChild(heading);
 
-        var frame = document.createElement('iframe');
-        frame.className = 'term-media-frame';
-        frame.src = embedUrl;
-        frame.loading = 'lazy';
-        frame.width = '100%';
-        frame.height = '152';
-        frame.frameBorder = '0';
-        frame.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
-        frame.referrerPolicy = 'strict-origin-when-cross-origin';
+        var frame = null;
+        if (spotifyWarmFrame && embedUrl === spotifyEmbedUrl) {
+            frame = spotifyWarmFrame;
+            frame.className = 'term-media-frame';
+            frame.width = '100%';
+            frame.height = '152';
+            frame.style.cssText = '';
+        } else {
+            frame = document.createElement('iframe');
+            frame.className = 'term-media-frame';
+            frame.src = embedUrl;
+            frame.loading = 'lazy';
+            frame.width = '100%';
+            frame.height = '152';
+            frame.frameBorder = '0';
+            frame.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+            frame.referrerPolicy = 'strict-origin-when-cross-origin';
+        }
         wrap.appendChild(frame);
 
         if (commandRow && output.contains(commandRow)) {
@@ -833,6 +844,29 @@ function initializeUtilityTerminal() {
             output.appendChild(wrap);
         }
         output.scrollTop = output.scrollHeight;
+    }
+
+    function prewarmSpotify() {
+        if (spotifyWarmFrame) {
+            return;
+        }
+        spotifyWarmFrame = document.createElement('iframe');
+        spotifyWarmFrame.className = 'term-media-frame';
+        spotifyWarmFrame.src = spotifyEmbedUrl;
+        spotifyWarmFrame.loading = 'eager';
+        spotifyWarmFrame.width = '1';
+        spotifyWarmFrame.height = '1';
+        spotifyWarmFrame.frameBorder = '0';
+        spotifyWarmFrame.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+        spotifyWarmFrame.referrerPolicy = 'strict-origin-when-cross-origin';
+        spotifyWarmFrame.style.position = 'fixed';
+        spotifyWarmFrame.style.left = '-9999px';
+        spotifyWarmFrame.style.top = '-9999px';
+        spotifyWarmFrame.style.width = '1px';
+        spotifyWarmFrame.style.height = '1px';
+        spotifyWarmFrame.style.opacity = '0';
+        spotifyWarmFrame.style.pointerEvents = 'none';
+        document.body.appendChild(spotifyWarmFrame);
     }
 
     function writePromptLine(raw) {
@@ -1087,7 +1121,7 @@ function initializeUtilityTerminal() {
             writeLine('[ok] loading La Mentira in terminal player...');
             writeLine('[status] clip target: 1:56 to 2:18 (22s).');
             writeLine('[status] if playback does not auto-seek, drag the timeline to 1:56 and stop at 2:18.');
-            writeSpotifyEmbed('La Mentira - Luis Miguel', 'https://open.spotify.com/embed/track/3wogsSWyEEu5eVgLqUqySF?utm_source=generator&t=116');
+            writeSpotifyEmbed('La Mentira - Luis Miguel', spotifyEmbedUrl);
             return;
         }
         if (command.indexOf('set theme ') === 0) {
@@ -1163,6 +1197,7 @@ function initializeUtilityTerminal() {
     ensureCommandRow();
     updatePrompt();
     renderTerminalDashboard();
+    setTimeout(prewarmSpotify, 900);
 }
 
 function initializePerformanceMode() {
