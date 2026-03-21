@@ -27,55 +27,38 @@ const typed=new Typed('.multiple-text',{
 var playCommandBeep = createCommandBeepPlayer();
 
 function createCommandBeepPlayer() {
-    var context = null;
     var lastPlayedAt = 0;
     var minGapMs = 35;
-    var fallbackDataUri = 'data:audio/wav;base64,UklGRlQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YTAAAAAAECAwP0A/MCAPAAAAECAwP0A/MCAPAAAAECAwP0A/MCAPAAAAECAwP0A/MCAPAAAA';
-
-    function getContext() {
-        if (context) {
-            return context;
-        }
-        var AudioCtor = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtor) {
-            return null;
-        }
-        context = new AudioCtor();
-        return context;
-    }
-
-    function playFallbackBeep() {
-        try {
-            var audio = new Audio(fallbackDataUri);
-            audio.volume = 0.45;
-            audio.play();
-        } catch (e) {
-            // Ignore fallback failures.
-        }
-    }
 
     function playWebAudioBeep(ctx) {
         var now = ctx.currentTime + 0.002;
-        var end = now + 0.09;
+        var end = now + 0.08;
 
         var master = ctx.createGain();
         var oscA = ctx.createOscillator();
         var oscB = ctx.createOscillator();
+        var lowPass = ctx.createBiquadFilter();
 
         master.gain.setValueAtTime(0.0001, now);
-        master.gain.linearRampToValueAtTime(0.22, now + 0.006);
+        master.gain.linearRampToValueAtTime(0.06, now + 0.01);
         master.gain.exponentialRampToValueAtTime(0.0001, end);
 
-        oscA.type = 'square';
-        oscA.frequency.setValueAtTime(1120, now);
-        oscA.frequency.exponentialRampToValueAtTime(920, end);
+        lowPass.type = 'lowpass';
+        lowPass.frequency.setValueAtTime(980, now);
+        lowPass.Q.setValueAtTime(0.65, now);
 
-        oscB.type = 'triangle';
-        oscB.frequency.setValueAtTime(560, now);
-        oscB.detune.setValueAtTime(7, now);
+        oscA.type = 'triangle';
+        oscA.frequency.setValueAtTime(520, now);
+        oscA.frequency.exponentialRampToValueAtTime(460, end);
 
-        oscA.connect(master);
-        oscB.connect(master);
+        oscB.type = 'sine';
+        oscB.frequency.setValueAtTime(390, now);
+        oscB.frequency.exponentialRampToValueAtTime(350, end);
+        oscB.detune.setValueAtTime(-3, now);
+
+        oscA.connect(lowPass);
+        oscB.connect(lowPass);
+        lowPass.connect(master);
         master.connect(ctx.destination);
 
         oscA.start(now);
@@ -92,24 +75,27 @@ function createCommandBeepPlayer() {
         lastPlayedAt = nowMs;
 
         try {
-            var ctx = getContext();
-            if (!ctx) {
-                playFallbackBeep();
+            var AudioCtor = window.AudioContext || window.webkitAudioContext;
+            if (!AudioCtor) {
                 return;
             }
 
-            if (ctx.state === 'suspended') {
-                ctx.resume().then(function() {
-                    playWebAudioBeep(ctx);
-                }).catch(function() {
-                    playFallbackBeep();
-                });
-                return;
+            // Create a short-lived context per command so beep is not coupled to any other media state.
+            var ctx = new AudioCtor({ latencyHint: 'interactive' });
+
+            if (ctx.state === 'suspended' && ctx.resume) {
+                ctx.resume();
             }
 
             playWebAudioBeep(ctx);
+
+            setTimeout(function() {
+                if (ctx && ctx.close) {
+                    ctx.close();
+                }
+            }, 140);
         } catch (e) {
-            playFallbackBeep();
+            // Silent fallback when Web Audio is unavailable.
         }
     };
 }
