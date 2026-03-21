@@ -94,7 +94,7 @@ function initializeBootShell() {
 
     function setInputValue(value) {
         input.textContent = value;
-        actualPasswordInput = '';
+        input.focus();
         setCaretToEnd(input);
     }
 

@@ -432,9 +432,10 @@ body.boot-active{
     line-height: 1;
     font-family: 'IBM Plex Mono', monospace;
     font-weight: 900;
-    transform: scaleX(2.05);
+    transform: scaleX(3.2);
     transform-origin: center;
     animation: terminalUnderscoreBlink 1s steps(1, end) infinite;
+    letter-spacing: 0.15em;
 }
 .boot-run,
 .boot-skip{
@@ -611,9 +612,10 @@ body.boot-active .utility-terminal{
 .term-panel-output .term-inline-cursor{
     color: #f1f1f1;
     font-weight: 900;
-    transform: scaleX(2.05);
+    transform: scaleX(3.2);
     transform-origin: center;
     animation: terminalUnderscoreBlink 1s steps(1, end) infinite;
+    letter-spacing: 0.15em;
 }
 
 @keyframes terminalUnderscoreBlink{
