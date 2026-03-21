@@ -482,32 +482,38 @@ function initializeUtilityTerminal() {
         'sandboxed.txt': {
             title: 'Sandboxed Remote Code Executor',
             intro: 'Secure sandboxed code execution with Docker isolation and real-time job status updates.',
-            repo: 'https://github.com/Sandrocottus1/sandboxed_code_execution_platform'
+            repo: 'https://github.com/Sandrocottus1/sandboxed_code_execution_platform',
+            live: 'https://sandrocottus1.github.io/Portfolio/'
         },
         'finboard.txt': {
             title: 'FinBoard',
             intro: 'Responsive Next.js dashboard with WebSockets and smooth mobile interactions.',
-            repo: 'https://github.com/Sandrocottus1/FinBoard'
+            repo: 'https://github.com/Sandrocottus1/FinBoard',
+            live: 'https://sandrocottus1.github.io/Portfolio/'
         },
         'rag.txt': {
             title: 'Internal Knowledge Assistant (RAG)',
             intro: 'Streamlit + FAISS assistant for retrieval-augmented responses over internal knowledge.',
-            repo: 'https://github.com/Sandrocottus1/RAG_based_AI_Assistant.git'
+            repo: 'https://github.com/Sandrocottus1/RAG_based_AI_Assistant.git',
+            live: 'https://sandrocottus1.github.io/Portfolio/'
         },
         'shared-cart.txt': {
             title: 'Shared-Cart',
             intro: 'Realtime collaborative cart concept where multiple users shop together in sync.',
-            repo: 'https://github.com/zordican/walmart-frontend'
+            repo: 'https://github.com/zordican/walmart-frontend',
+            live: 'https://sandrocottus1.github.io/Portfolio/'
         },
         'assignmentkaro.txt': {
             title: 'AssignmentKaro.com',
             intro: 'Full-stack platform built with PHP and MySQL for student support workflows.',
-            repo: 'https://github.com/Sandrocottus1/AssignmentKaro.com'
+            repo: 'https://github.com/Sandrocottus1/AssignmentKaro.com',
+            live: 'https://sandrocottus1.github.io/Portfolio/'
         },
         'hospitalsnearme.txt': {
             title: 'HospitalsNearme',
             intro: 'Hospital discovery and slot booking solution built during Smart India Hackathon.',
-            repo: 'https://github.com/Sandrocottus1/Hospitals'
+            repo: 'https://github.com/Sandrocottus1/Hospitals',
+            live: 'https://sandrocottus1.github.io/Portfolio/'
         }
     };
     var sectionAliases = {
@@ -998,6 +1004,7 @@ function initializeUtilityTerminal() {
             }
             writeLine(projectInfo.title + ': ' + projectInfo.intro);
             writeLine('repo: ' + projectInfo.repo);
+            writeLine('live: ' + projectInfo.live);
             return;
         }
         if (command === 'close' || command === 'exit') {
@@ -1043,6 +1050,8 @@ function initializeUtilityTerminal() {
             writeLine('role: Full Stack Developer');
             writeLine('passion: Building scalable backends & responsive interfaces');
             writeLine('github: https://github.com/Sandrocottus1');
+            writeLine('leetcode: https://leetcode.com/u/itsmearyan0205/');
+            writeLine('codeforces: https://codeforces.com/profile/itsmearyan0205');
             writeLine('status: Actively seeking opportunities 🚀');
             return;
         }
