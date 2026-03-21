@@ -728,7 +728,66 @@ function initializeUtilityTerminal() {
         }
         if (className) {
             row.classList.add(className);
+        } else {
+            if (/^\[help\]/.test(content)) {
+                row.classList.add('line-help');
+            } else if (/^\[status\]/.test(content)) {
+                row.classList.add('line-status');
+            } else if (/^\[ok\]/.test(content)) {
+                row.classList.add('line-ok');
+            } else if (/^\[warn\]/.test(content)) {
+                row.classList.add('line-warn');
+            } else if (/^\[theme\]/.test(content)) {
+                row.classList.add('line-theme');
+            } else if (/^\[mode\]/.test(content)) {
+                row.classList.add('line-mode');
+            } else if (/^\[whoami\]/.test(content)) {
+                row.classList.add('line-whoami');
+            }
         }
+        if (commandRow && output.contains(commandRow)) {
+            output.insertBefore(row, commandRow);
+        } else {
+            output.appendChild(row);
+        }
+        output.scrollTop = output.scrollHeight;
+    }
+
+    function writePromptLine(raw) {
+        var row = document.createElement('p');
+        row.className = 'line-prompt';
+
+        var user = document.createElement('span');
+        user.className = 'prompt-user';
+        user.textContent = 'user';
+        row.appendChild(user);
+
+        var at = document.createTextNode('@');
+        row.appendChild(at);
+
+        var host = document.createElement('span');
+        host.className = 'prompt-host';
+        host.textContent = 'portfolio';
+        row.appendChild(host);
+
+        var colon = document.createTextNode(':');
+        row.appendChild(colon);
+
+        var path = document.createElement('span');
+        path.className = 'prompt-path';
+        path.textContent = currentDir;
+        row.appendChild(path);
+
+        var dollar = document.createElement('span');
+        dollar.className = 'prompt-dollar';
+        dollar.textContent = '$';
+        row.appendChild(dollar);
+
+        var cmd = document.createElement('span');
+        cmd.className = 'prompt-command';
+        cmd.textContent = ' ' + raw;
+        row.appendChild(cmd);
+
         if (commandRow && output.contains(commandRow)) {
             output.insertBefore(row, commandRow);
         } else {
@@ -802,7 +861,7 @@ function initializeUtilityTerminal() {
         if (!command) {
             return;
         }
-        writeLine('user@portfolio:' + currentDir + '$ ' + raw);
+        writePromptLine(raw);
 
         if (command === 'help' || command === '?') {
             writeLine('[help] commands: help, status, clear, close, themes, modes');

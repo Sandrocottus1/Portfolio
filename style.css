@@ -554,6 +554,25 @@ body.boot-active .utility-terminal{
     overflow-wrap: anywhere;
     word-break: break-word;
 }
+.term-panel-output p.line-prompt{
+    color: #d8d8d8;
+}
+.term-panel-output .prompt-user{
+    color: #4ec9b0;
+}
+.term-panel-output .prompt-host{
+    color: #dcdcaa;
+}
+.term-panel-output .prompt-path{
+    color: #9cdcfe;
+}
+.term-panel-output .prompt-dollar{
+    color: #ce9178;
+    margin-left: 1px;
+}
+.term-panel-output .prompt-command{
+    color: #f5f5f5;
+}
 .term-panel-output p a{
     color: #9cdcfe;
     text-decoration: underline;
@@ -566,6 +585,27 @@ body.boot-active .utility-terminal{
 }
 .term-panel-output .error{
     color: #ff6b68;
+}
+.term-panel-output .line-help{
+    color: #9cdcfe;
+}
+.term-panel-output .line-status{
+    color: #dcdcaa;
+}
+.term-panel-output .line-ok{
+    color: #4ec9b0;
+}
+.term-panel-output .line-warn{
+    color: #d7ba7d;
+}
+.term-panel-output .line-theme{
+    color: #c586c0;
+}
+.term-panel-output .line-mode{
+    color: #ce9178;
+}
+.term-panel-output .line-whoami{
+    color: #b5cea8;
 }
 .term-panel-output .ascii-art{
     overflow-wrap: normal;
