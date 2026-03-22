@@ -358,13 +358,43 @@ body.boot-active{
     margin: 1.2rem 0;
     display: grid;
     gap: 0.45rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(86, 247, 192, 0.68) rgba(6, 24, 28, 0.95);
 }
 .boot-output::-webkit-scrollbar{
-    width: 8px;
+    width: 10px;
+}
+.boot-output::-webkit-scrollbar-track{
+    background: linear-gradient(180deg, rgba(6, 24, 28, 0.98), rgba(7, 32, 37, 0.96));
+    border-left: 1px solid rgba(86, 247, 192, 0.15);
 }
 .boot-output::-webkit-scrollbar-thumb{
-    background: rgba(86, 247, 192, 0.35);
+    background: linear-gradient(180deg, rgba(86, 247, 192, 0.95), rgba(28, 201, 160, 0.92));
+    background-image:
+        repeating-linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.28) 0px,
+            rgba(255, 255, 255, 0.28) 1px,
+            rgba(0, 0, 0, 0) 1px,
+            rgba(0, 0, 0, 0) 4px
+        ),
+        linear-gradient(180deg, rgba(86, 247, 192, 0.95), rgba(28, 201, 160, 0.92));
     border-radius: 999px;
+    border: 2px solid rgba(4, 18, 22, 0.92);
+    box-shadow: 0 0 8px rgba(86, 247, 192, 0.35), inset 0 0 6px rgba(255, 255, 255, 0.18);
+}
+.boot-output::-webkit-scrollbar-thumb:hover{
+    background: linear-gradient(180deg, rgba(116, 255, 210, 0.98), rgba(50, 214, 179, 0.95));
+    background-image:
+        repeating-linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.34) 0px,
+            rgba(255, 255, 255, 0.34) 1px,
+            rgba(0, 0, 0, 0) 1px,
+            rgba(0, 0, 0, 0) 4px
+        ),
+        linear-gradient(180deg, rgba(116, 255, 210, 0.98), rgba(50, 214, 179, 0.95));
+    box-shadow: 0 0 12px rgba(86, 247, 192, 0.55), inset 0 0 8px rgba(255, 255, 255, 0.28);
 }
 .boot-output p{
     margin: 0;
@@ -517,12 +547,20 @@ body.boot-active .utility-terminal{
     gap: 0.7rem;
     padding: 0.9rem 1.25rem;
     border-radius: 999px;
-    border: 1px solid #464646;
-    background: #101010;
-    color: #f2f2f2;
+    border: 1px solid #3d8cff;
+    background: #0f1828;
+    color: #cfeaff;
     font-size: 1.25rem;
     font-family: Consolas, 'Cascadia Mono', 'Courier New', monospace;
-    box-shadow: 0 16px 28px rgba(0, 0, 0, 0.22);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.24);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.term-toggle:hover{
+    transform: translateY(-1px);
+    background: #15243d;
+    border-color: #68a7ff;
 }
 .term-toggle i{
     font-size: 1.2rem;
@@ -625,6 +663,43 @@ body.boot-active .utility-terminal{
     overflow-x: hidden;
     display: grid;
     gap: 0.45rem;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 229, 255, 0.72) rgba(6, 14, 26, 0.98);
+}
+.term-panel-output::-webkit-scrollbar{
+    width: 10px;
+}
+.term-panel-output::-webkit-scrollbar-track{
+    background: linear-gradient(180deg, rgba(5, 12, 24, 0.98), rgba(10, 18, 32, 0.98));
+    border-left: 1px solid rgba(66, 200, 255, 0.2);
+}
+.term-panel-output::-webkit-scrollbar-thumb{
+    background: linear-gradient(180deg, rgba(0, 229, 255, 0.94), rgba(84, 123, 255, 0.9));
+    background-image:
+        repeating-linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.26) 0px,
+            rgba(255, 255, 255, 0.26) 1px,
+            rgba(0, 0, 0, 0) 1px,
+            rgba(0, 0, 0, 0) 4px
+        ),
+        linear-gradient(180deg, rgba(0, 229, 255, 0.94), rgba(84, 123, 255, 0.9));
+    border-radius: 999px;
+    border: 2px solid rgba(6, 12, 24, 0.92);
+    box-shadow: 0 0 10px rgba(66, 200, 255, 0.45), inset 0 0 8px rgba(255, 255, 255, 0.2);
+}
+.term-panel-output::-webkit-scrollbar-thumb:hover{
+    background: linear-gradient(180deg, rgba(76, 240, 255, 0.98), rgba(124, 156, 255, 0.95));
+    background-image:
+        repeating-linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.3) 0px,
+            rgba(255, 255, 255, 0.3) 1px,
+            rgba(0, 0, 0, 0) 1px,
+            rgba(0, 0, 0, 0) 4px
+        ),
+        linear-gradient(180deg, rgba(76, 240, 255, 0.98), rgba(124, 156, 255, 0.95));
+    box-shadow: 0 0 14px rgba(66, 200, 255, 0.62), inset 0 0 10px rgba(255, 255, 255, 0.25);
 }
 .term-panel-output p{
     margin: 0;

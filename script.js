@@ -26,6 +26,12 @@ const typed=new Typed('.multiple-text',{
 
 var playCommandBeep = createCommandBeepPlayer();
 
+function queueCommandBeep() {
+    setTimeout(function() {
+        playCommandBeep();
+    }, 0);
+}
+
 function createCommandBeepPlayer() {
     var context = null;
     var lastPlayedAt = 0;
@@ -190,6 +196,15 @@ function initializeBootShell() {
 
     function getInputValue() {
         return (input.textContent || '').replace(/\n/g, '');
+    }
+
+    function submitBootForm() {
+        if (typeof form.requestSubmit === 'function') {
+            form.requestSubmit();
+            return;
+        }
+        var submitEvent = new Event('submit', { bubbles: true, cancelable: true });
+        form.dispatchEvent(submitEvent);
     }
 
     function setPrompt(waitingForPassword) {
@@ -476,7 +491,7 @@ function initializeBootShell() {
         if (!command.trim()) {
             return;
         }
-        playCommandBeep();
+        queueCommandBeep();
         history.push(command);
         historyIndex = history.length;
         handleCommand(command);
@@ -486,7 +501,7 @@ function initializeBootShell() {
     input.addEventListener('keydown', function(event) {
         if (event.key === 'Enter') {
             event.preventDefault();
-            form.requestSubmit();
+            submitBootForm();
             return;
         }
         if (!history.length) {
@@ -794,7 +809,7 @@ function initializeUtilityTerminal() {
                     setInputValue('');
                     return;
                 }
-                playCommandBeep();
+                queueCommandBeep();
                 history.push(value);
                 historyIndex = history.length;
                 handleCommand(value);
