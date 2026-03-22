@@ -10,6 +10,20 @@ initializeUtilityTerminal();
 let sections=document.querySelectorAll('section');
 let navLinks=document.querySelectorAll('header nav a');
 let scrollTicking = false;
+var headerElement = document.querySelector('header');
+var activeSectionId = '';
+var navLinkBySectionId = {};
+var timelineElement = document.getElementById('timeline');
+var timelineLineElement = timelineElement ? timelineElement.querySelector('.timeline-line') : null;
+var timelineItemElements = timelineElement ? timelineElement.querySelectorAll('.contain') : [];
+var projectMediaElements = document.querySelectorAll('.project-media');
+
+navLinks.forEach(function(link) {
+    var href = link.getAttribute('href') || '';
+    if (href.indexOf('#') === 0) {
+        navLinkBySectionId[href.slice(1)] = link;
+    }
+});
 
 menuIcon.onclick= ()=>{
     menuIcon.classList.toggle('fa-xmark');
@@ -1801,23 +1815,30 @@ function requestScrollWork() {
 
 function runScrollWork() {
     var top = window.scrollY;
-    sections.forEach(function(sec){
-        var offset=sec.offsetTop-150;
+    var nextSectionId = '';
+    for (var i = 0; i < sections.length; i += 1) {
+        var sec = sections[i];
+        var offset = sec.offsetTop - 150;
         var height = sec.offsetHeight;
-        var id=sec.getAttribute('id');
-        if(top>=offset && top<offset+height){
-            navLinks.forEach(function(link) {
-                link.classList.remove('active');
-            });
-            var activeLink = document.querySelector('header nav a[href*="' + id + '"]');
-            if (activeLink) {
-                activeLink.classList.add('active');
-            }
+        if (top >= offset && top < offset + height) {
+            nextSectionId = sec.getAttribute('id') || '';
+            break;
         }
-    });
+    }
 
-    var header=document.querySelector('header');
-    header.classList.toggle('sticky',top > 100);
+    if (nextSectionId && nextSectionId !== activeSectionId) {
+        navLinks.forEach(function(link) {
+            link.classList.remove('active');
+        });
+        if (navLinkBySectionId[nextSectionId]) {
+            navLinkBySectionId[nextSectionId].classList.add('active');
+        }
+        activeSectionId = nextSectionId;
+    }
+
+    if (headerElement) {
+        headerElement.classList.toggle('sticky', top > 100);
+    }
 
     menuIcon.classList.remove('fa-xmark');
     navbar.classList.remove('active');
@@ -1920,22 +1941,48 @@ function initializeCardTiltEffect() {
         return;
     }
     cards.forEach(function(card) {
+        var frameId = 0;
+        var latestEvent = null;
+        var cachedRect = null;
+
+        function applyTilt() {
+            frameId = 0;
+            if (!latestEvent || getPerformanceMode() !== 'full') {
+                return;
+            }
+            if (!cachedRect) {
+                cachedRect = card.getBoundingClientRect();
+            }
+            var x = latestEvent.clientX - cachedRect.left;
+            var y = latestEvent.clientY - cachedRect.top;
+            var px = (x / cachedRect.width) * 100;
+            var py = (y / cachedRect.height) * 100;
+            var rotateY = ((x / cachedRect.width) - 0.5) * 8;
+            var rotateX = (0.5 - (y / cachedRect.height)) * 8;
+            card.style.setProperty('--card-x', px + '%');
+            card.style.setProperty('--card-y', py + '%');
+            card.style.transform = 'perspective(1000px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) translateY(-8px)';
+        }
+
+        card.addEventListener('mouseenter', function() {
+            cachedRect = card.getBoundingClientRect();
+        });
+
         card.addEventListener('mousemove', function(event) {
             if (getPerformanceMode() !== 'full') {
                 return;
             }
-            var rect = card.getBoundingClientRect();
-            var x = event.clientX - rect.left;
-            var y = event.clientY - rect.top;
-            var px = (x / rect.width) * 100;
-            var py = (y / rect.height) * 100;
-            var rotateY = ((x / rect.width) - 0.5) * 8;
-            var rotateX = (0.5 - (y / rect.height)) * 8;
-            card.style.setProperty('--card-x', px + '%');
-            card.style.setProperty('--card-y', py + '%');
-            card.style.transform = 'perspective(1000px) rotateX(' + rotateX + 'deg) rotateY(' + rotateY + 'deg) translateY(-8px)';
+            latestEvent = event;
+            if (!frameId) {
+                frameId = window.requestAnimationFrame(applyTilt);
+            }
         });
         card.addEventListener('mouseleave', function() {
+            if (frameId) {
+                window.cancelAnimationFrame(frameId);
+                frameId = 0;
+            }
+            latestEvent = null;
             card.style.removeProperty('transform');
             card.style.setProperty('--card-x', '50%');
             card.style.setProperty('--card-y', '50%');
@@ -1969,24 +2016,21 @@ function animateHeroTags() {
 }
 
 function updateTimeline() {
-    var element = document.getElementById('timeline');
-    if (!element) {
+    if (!timelineElement) {
         return;
     }
-    var line = element.querySelector('.timeline-line');
-    var items = element.querySelectorAll('.contain');
-    var rect = element.getBoundingClientRect();
+    var rect = timelineElement.getBoundingClientRect();
     var scrollTop = window.scrollY;
     var timelineTop = scrollTop + rect.top;
-    var timelineHeight = element.offsetHeight;
+    var timelineHeight = timelineElement.offsetHeight;
     var viewportTrigger = scrollTop + window.innerHeight * 0.65;
     var progress = (viewportTrigger - timelineTop) / timelineHeight;
     var clamped = Math.max(0, Math.min(1, progress));
     var lineHeight = clamped * timelineHeight;
-    if (line) {
-        line.style.height = lineHeight + 'px';
+    if (timelineLineElement) {
+        timelineLineElement.style.height = lineHeight + 'px';
     }
-    items.forEach(function(item) {
+    timelineItemElements.forEach(function(item) {
         var itemOffset = item.offsetTop;
         if (lineHeight >= itemOffset + 40) {
             item.classList.add('show');
@@ -2016,18 +2060,17 @@ function revealProjectCards() {
 }
 
 function updateProjectMediaParallax() {
-    var mediaBlocks = document.querySelectorAll('.project-media');
-    if (!mediaBlocks.length) {
+    if (!projectMediaElements.length) {
         return;
     }
     if (getPerformanceMode() !== 'full') {
-        mediaBlocks.forEach(function(block) {
+        projectMediaElements.forEach(function(block) {
             block.style.setProperty('--parallax-y', '50%');
         });
         return;
     }
     var viewportHeight = window.innerHeight;
-    mediaBlocks.forEach(function(block) {
+    projectMediaElements.forEach(function(block) {
         var rect = block.getBoundingClientRect();
         var progress = (rect.top + rect.height / 2 - viewportHeight / 2) / viewportHeight;
         var offset = Math.max(-12, Math.min(12, progress * 24));
@@ -2040,7 +2083,6 @@ window.addEventListener('load', function() {
     runScrollWork();
     animateHeroTags();
 });
-window.addEventListener('resize', updateReadingProgress);
 
 window.addEventListener('load', function() {
     var thankYou = document.getElementById('thank-you');
