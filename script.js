@@ -1162,6 +1162,158 @@ function initializeUtilityTerminal() {
         writeLine('tip: use ls -a for hidden entries');
     }
 
+    function describeWeatherCode(code) {
+        var map = {
+            0: 'clear sky',
+            1: 'mainly clear',
+            2: 'partly cloudy',
+            3: 'overcast',
+            45: 'fog',
+            48: 'depositing rime fog',
+            51: 'light drizzle',
+            53: 'moderate drizzle',
+            55: 'dense drizzle',
+            56: 'light freezing drizzle',
+            57: 'dense freezing drizzle',
+            61: 'slight rain',
+            63: 'moderate rain',
+            65: 'heavy rain',
+            66: 'light freezing rain',
+            67: 'heavy freezing rain',
+            71: 'slight snow',
+            73: 'moderate snow',
+            75: 'heavy snow',
+            77: 'snow grains',
+            80: 'slight rain showers',
+            81: 'moderate rain showers',
+            82: 'violent rain showers',
+            85: 'slight snow showers',
+            86: 'heavy snow showers',
+            95: 'thunderstorm',
+            96: 'thunderstorm with hail',
+            99: 'severe thunderstorm with hail'
+        };
+        return map.hasOwnProperty(code) ? map[code] : 'unknown conditions';
+    }
+
+    function renderWeatherResult(data, label) {
+        if (!data || !data.current) {
+            throw new Error('Malformed weather response');
+        }
+        var current = data.current;
+        var code = Number(current.weather_code);
+        var condition = describeWeatherCode(code);
+        var temp = current.temperature_2m;
+        var feelsLike = current.apparent_temperature;
+        writeLine('[weather] ' + condition + ' | ' + temp + '°C | feels like ' + feelsLike + '°C');
+        writeLine('[weather] location: ' + label);
+    }
+
+    function fetchWeatherByCoordinates(latitude, longitude, label) {
+        var endpoint = 'https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(latitude) + '&longitude=' + encodeURIComponent(longitude) + '&current=temperature_2m,apparent_temperature,weather_code&timezone=auto';
+
+        writeLine('[weather] fetching live forecast...');
+
+        fetch(endpoint)
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Weather API responded with status ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                renderWeatherResult(data, label);
+            })
+            .catch(function(error) {
+                writeLine('[error] unable to fetch live weather: ' + error.message, 'error');
+            });
+    }
+
+    function fetchWeatherByCity(cityName) {
+        var city = (cityName || '').trim();
+        if (!city) {
+            writeLine('[error] city name is required. try: weather mumbai', 'error');
+            return;
+        }
+
+        writeLine('[weather] finding coordinates for ' + city + '...');
+
+        var geocodeEndpoint = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(city) + '&count=1&language=en&format=json';
+        fetch(geocodeEndpoint)
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Geocoding API responded with status ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                if (!data || !data.results || !data.results.length) {
+                    throw new Error('City not found');
+                }
+
+                var place = data.results[0];
+                var latitude = Number(place.latitude).toFixed(4);
+                var longitude = Number(place.longitude).toFixed(4);
+                var parts = [place.name];
+                if (place.admin1) {
+                    parts.push(place.admin1);
+                }
+                if (place.country) {
+                    parts.push(place.country);
+                }
+                var label = parts.join(', ');
+
+                fetchWeatherByCoordinates(latitude, longitude, label + ' (' + latitude + ', ' + longitude + ')');
+            })
+            .catch(function(error) {
+                writeLine('[error] unable to resolve city weather: ' + error.message, 'error');
+            });
+    }
+
+    function promptCityWeatherFallback() {
+        var city = window.prompt('Location permission was denied. Enter a city name to fetch weather:');
+        if (!city || !city.trim()) {
+            writeLine('[warn] city fallback canceled. you can also run: weather <city>', 'line-warn');
+            return;
+        }
+        fetchWeatherByCity(city);
+    }
+
+    function fetchCurrentLocationWeather() {
+        if (!navigator.geolocation) {
+            writeLine('[warn] geolocation is not available in this browser.', 'line-warn');
+            promptCityWeatherFallback();
+            return;
+        }
+
+        writeLine('[weather] locating your device...');
+
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var latitude = Number(position.coords.latitude).toFixed(4);
+            var longitude = Number(position.coords.longitude).toFixed(4);
+            fetchWeatherByCoordinates(latitude, longitude, latitude + ', ' + longitude);
+        }, function(error) {
+            if (error && error.code === 1) {
+                writeLine('[warn] location permission denied. switching to city fallback.', 'line-warn');
+                promptCityWeatherFallback();
+                return;
+            }
+            if (error && error.code === 2) {
+                writeLine('[error] location unavailable right now. please try again in a moment.', 'error');
+                return;
+            }
+            if (error && error.code === 3) {
+                writeLine('[error] location request timed out. please try again.', 'error');
+                return;
+            }
+            writeLine('[error] could not read your location.', 'error');
+        }, {
+            enableHighAccuracy: false,
+            timeout: 10000,
+            maximumAge: 120000
+        });
+    }
+
     function handleCommand(raw) {
         var command = normalize(raw);
         if (!command) {
@@ -1171,7 +1323,7 @@ function initializeUtilityTerminal() {
 
         if (command === 'help' || command === '?') {
             writeLine('[help] commands: help, whoami, skills, links, stats, status, clear');
-            writeLine('[help] info: neofetch, weather, time, joke, black hole, play song');
+            writeLine('[help] info: neofetch, weather, weather <city>, time, joke, black hole, play song');
             writeLine('[help] nav: goto/go/open <home|about|portfolio|services|contact>');
             writeLine('[help] fs: cd <portfolio|..|~>, ls, pwd, cat/type/file <name>');
             writeLine('[help] config: set theme <editorial|futuristic|minimal>');
@@ -1387,15 +1539,12 @@ function initializeUtilityTerminal() {
             return;
         }
         if (command === 'weather') {
-            var weatherOptions = [
-                '🌤️  Sunny & productive | 25°C | feels like AI will take over soon',
-                '🌦️  Partly cloudy | 22°C | good for debugging',
-                '⛈️  Thunderstorm alert | 19°C | perfect for coding marathons',
-                '🌈  Rainbow spotted | 23°C | luck is on your side',
-                '❄️  Snow time | 2°C | time to warm up with coffee'
-            ];
-            var weather = weatherOptions[Math.floor(Math.random() * weatherOptions.length)];
-            writeLine('[weather] ' + weather);
+            fetchCurrentLocationWeather();
+            return;
+        }
+        if (command.indexOf('weather ') === 0) {
+            var cityQuery = raw.replace(/^weather\s+/i, '').trim();
+            fetchWeatherByCity(cityQuery);
             return;
         }
         if (command === 'time') {
