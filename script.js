@@ -1034,9 +1034,27 @@ function initializeUtilityTerminal() {
         });
     }
 
+    function isEditableElement(node) {
+        if (!node) {
+            return false;
+        }
+        var tag = (node.tagName || '').toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || tag === 'select') {
+            return true;
+        }
+        return !!node.isContentEditable;
+    }
+
+    function shouldAutoCaptureTyping() {
+        return !panel.hidden && !isMinimized;
+    }
+
     function openPanel() {
         panel.hidden = false;
         toggle.setAttribute('aria-expanded', 'true');
+        requestAnimationFrame(function() {
+            focusInput();
+        });
         setTimeout(function() {
             focusInput();
         }, 50);
@@ -1069,6 +1087,9 @@ function initializeUtilityTerminal() {
         panel.classList.remove('is-minimized');
         panel.style.width = savedPanelWidth;
         panel.style.height = savedPanelHeight;
+        requestAnimationFrame(function() {
+            focusInput();
+        });
     }
 
     function getCurrentTheme() {
@@ -1639,6 +1660,57 @@ function initializeUtilityTerminal() {
     document.addEventListener('keydown', function(event) {
         if (event.key === 'Escape' && !panel.hidden) {
             closePanel();
+            return;
+        }
+
+        if (!shouldAutoCaptureTyping()) {
+            return;
+        }
+
+        if (document.activeElement === input) {
+            return;
+        }
+
+        if (event.ctrlKey || event.metaKey || event.altKey) {
+            return;
+        }
+
+        var target = event.target;
+        if (isEditableElement(target) && !root.contains(target)) {
+            return;
+        }
+
+        var key = event.key;
+        var shouldCaptureKey = key.length === 1 || key === 'Backspace' || key === 'Enter';
+        if (!shouldCaptureKey) {
+            return;
+        }
+
+        event.preventDefault();
+        focusInput();
+
+        if (key.length === 1) {
+            setInputValue(getInputValue() + key);
+            return;
+        }
+
+        if (key === 'Backspace') {
+            var currentValue = getInputValue();
+            setInputValue(currentValue.slice(0, -1));
+            return;
+        }
+
+        if (key === 'Enter') {
+            var value = getInputValue();
+            if (!value.trim()) {
+                setInputValue('');
+                return;
+            }
+            queueCommandBeep();
+            history.push(value);
+            historyIndex = history.length;
+            handleCommand(value);
+            setInputValue('');
         }
     });
 
