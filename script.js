@@ -38,9 +38,13 @@ const typed=new Typed('.multiple-text',{
     loop:true,
 });
 
+var soundsEnabled = false;
 var playCommandBeep = createCommandBeepPlayer();
 
 function queueCommandBeep() {
+    if (!soundsEnabled) {
+        return;
+    }
     setTimeout(function() {
         playCommandBeep();
     }, 0);
@@ -105,6 +109,9 @@ function createCommandBeepPlayer() {
     }
 
     return function playBeep() {
+        if (!soundsEnabled) {
+            return;
+        }
         var nowMs = Date.now();
         if (nowMs - lastPlayedAt < minGapMs) {
             return;
@@ -198,6 +205,9 @@ function initializeBootShell() {
     var actualPasswordInput = '';
 
     function focusInput() {
+        if (isBusy || shell.style.display === 'none') {
+            return;
+        }
         input.focus();
         setCaretToEnd(input);
     }
@@ -539,6 +549,21 @@ function initializeBootShell() {
             focusInput();
         }
     });
+
+    shell.addEventListener('pointerdown', function() {
+        if (!isBusy) {
+            requestAnimationFrame(focusInput);
+        }
+    }, true);
+
+    input.addEventListener('blur', function() {
+        if (!isBusy && document.body.classList.contains('boot-active')) {
+            setTimeout(focusInput, 0);
+        }
+    });
+
+    setTimeout(focusInput, 0);
+    setTimeout(focusInput, 120);
 
     skip.addEventListener('click', function() {
         if (isBusy) {

@@ -461,6 +461,7 @@ body.boot-active{
     display: flex;
     gap: 0.45rem;
     align-items: baseline;
+    cursor: text;
 }
 .boot-prompt{
     font-size: 1.35rem;
@@ -468,6 +469,7 @@ body.boot-active{
     white-space: nowrap;
     font-weight: 700;
     text-shadow: 0 0 8px rgba(86, 247, 192, 0.3);
+    user-select: none;
 }
 .boot-command{
     display: inline-block;
@@ -483,7 +485,7 @@ body.boot-active{
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     word-break: break-word;
-    caret-color: transparent;
+    caret-color: #ffd700;
     font-weight: 600;
 }
 .boot-command:focus,
@@ -501,6 +503,7 @@ body.boot-active{
     transform: scaleY(1.9);
     transform-origin: center;
     animation: terminalUnderscoreBlink 1s steps(1, end) infinite;
+    pointer-events: none;
 }
 .boot-run,
 .boot-skip{
