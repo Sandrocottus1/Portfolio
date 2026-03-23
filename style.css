@@ -485,7 +485,7 @@ body.boot-active{
     white-space: pre-wrap;
     overflow-wrap: anywhere;
     word-break: break-word;
-    caret-color: #ffd700;
+    caret-color: transparent;
     font-weight: 600;
 }
 .boot-command:focus,
