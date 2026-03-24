@@ -924,6 +924,24 @@ body.theme-transition *{
     box-shadow: 0 4px 14px rgba(217, 111, 50, 0.35);
     transition: width 0.1s linear;
 }
+.scroll-fade{
+    position: fixed;
+    left: 0;
+    width: 100%;
+    height: clamp(38px, 8vh, 74px);
+    pointer-events: none;
+    z-index: 90;
+    opacity: 0;
+    transition: opacity 0.28s ease;
+}
+.scroll-fade--top{
+    top: 5px;
+    background: linear-gradient(180deg, color-mix(in srgb, var(--bg-color) 92%, black 8%), rgba(0, 0, 0, 0));
+}
+.scroll-fade--bottom{
+    bottom: 0;
+    background: linear-gradient(0deg, color-mix(in srgb, var(--bg-color) 92%, black 8%), rgba(0, 0, 0, 0));
+}
 section{
     min-height: 100vh;
     padding: 10rem 9% 2rem;

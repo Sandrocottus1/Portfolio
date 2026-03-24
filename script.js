@@ -17,6 +17,8 @@ var timelineElement = document.getElementById('timeline');
 var timelineLineElement = timelineElement ? timelineElement.querySelector('.timeline-line') : null;
 var timelineItemElements = timelineElement ? timelineElement.querySelectorAll('.contain') : [];
 var projectMediaElements = document.querySelectorAll('.project-media');
+var topScrollFadeElement = document.getElementById('scroll-fade-top');
+var bottomScrollFadeElement = document.getElementById('scroll-fade-bottom');
 
 navLinks.forEach(function(link) {
     var href = link.getAttribute('href') || '';
@@ -489,6 +491,22 @@ function updateReadingProgress() {
     var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
     var width = maxScroll > 0 ? (scrollTop / maxScroll) * 100 : 0;
     progress.style.width = Math.min(100, Math.max(0, width)) + '%';
+}
+
+function updateScrollEdgeFades(scrollTop, maxScroll) {
+    if (!topScrollFadeElement || !bottomScrollFadeElement) {
+        return;
+    }
+    var revealDistance = 120;
+    var safeMaxScroll = Math.max(0, maxScroll || 0);
+    var safeTop = Math.max(0, scrollTop || 0);
+
+    var topOpacity = Math.min(1, safeTop / revealDistance);
+    var remaining = Math.max(0, safeMaxScroll - safeTop);
+    var bottomOpacity = safeMaxScroll > 0 ? Math.min(1, remaining / revealDistance) : 0;
+
+    topScrollFadeElement.style.opacity = topOpacity.toFixed(3);
+    bottomScrollFadeElement.style.opacity = bottomOpacity.toFixed(3);
 }
 
 function initializeUtilityTerminal() {
@@ -1916,6 +1934,7 @@ function requestScrollWork() {
 
 function runScrollWork() {
     var top = window.scrollY;
+    var maxScroll = document.documentElement.scrollHeight - window.innerHeight;
     var nextSectionId = '';
     for (var i = 0; i < sections.length; i += 1) {
         var sec = sections[i];
@@ -1945,6 +1964,7 @@ function runScrollWork() {
     navbar.classList.remove('active');
 
     updateReadingProgress();
+    updateScrollEdgeFades(top, maxScroll);
     updateTimeline();
     updateProjectMediaParallax();
 }
