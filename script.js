@@ -526,6 +526,7 @@ function initializeUtilityTerminal() {
     var spotifyWarmFrame = null;
     var customAliases = {};
     var easterEggTriggered = false;
+    var activeCommandJob = null;
 
     function playTerminalBeep() {
         return;
@@ -720,6 +721,13 @@ function initializeUtilityTerminal() {
         syncInlineCursorPosition();
 
         input.addEventListener('keydown', function(event) {
+            if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'c') {
+                if (interruptActiveCommand()) {
+                    event.preventDefault();
+                    setInputValue('');
+                }
+                return;
+            }
             if (event.key === 'Tab') {
                 event.preventDefault();
                 var currentInput = getInputValue().trim();
@@ -1049,6 +1057,42 @@ function initializeUtilityTerminal() {
         return !panel.hidden && !isMinimized;
     }
 
+    function startAsyncCommand(label) {
+        if (activeCommandJob) {
+            writeLine('[warn] another command is already running. press Ctrl+C to stop it first.', 'line-warn');
+            return null;
+        }
+        var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+        activeCommandJob = {
+            label: label,
+            controller: controller,
+            canceled: false
+        };
+        writeLine('[exec] running ' + label + ' (Ctrl+C to cancel)');
+        return activeCommandJob;
+    }
+
+    function finishAsyncCommand(job) {
+        if (activeCommandJob === job) {
+            activeCommandJob = null;
+        }
+    }
+
+    function interruptActiveCommand() {
+        if (!activeCommandJob) {
+            return false;
+        }
+        var runningLabel = activeCommandJob.label;
+        activeCommandJob.canceled = true;
+        if (activeCommandJob.controller) {
+            activeCommandJob.controller.abort();
+        }
+        activeCommandJob = null;
+        writeLine('^C', 'line-warn');
+        writeLine('[ok] terminated: ' + runningLabel);
+        return true;
+    }
+
     function openPanel() {
         panel.hidden = false;
         toggle.setAttribute('aria-expanded', 'true');
@@ -1170,12 +1214,18 @@ function initializeUtilityTerminal() {
         writeLine('[weather] location: ' + label);
     }
 
-    function fetchWeatherByCoordinates(latitude, longitude, label) {
+    function fetchWeatherByCoordinates(latitude, longitude, label, job) {
         var endpoint = 'https://api.open-meteo.com/v1/forecast?latitude=' + encodeURIComponent(latitude) + '&longitude=' + encodeURIComponent(longitude) + '&current=temperature_2m,apparent_temperature,weather_code&timezone=auto';
+
+        if (!job || job.canceled) {
+            return;
+        }
 
         writeLine('[weather] fetching live forecast...');
 
-        fetch(endpoint)
+        fetch(endpoint, {
+            signal: job.controller ? job.controller.signal : undefined
+        })
             .then(function(response) {
                 if (!response.ok) {
                     throw new Error('Weather API responded with status ' + response.status);
@@ -1183,24 +1233,39 @@ function initializeUtilityTerminal() {
                 return response.json();
             })
             .then(function(data) {
+                if (job.canceled) {
+                    return;
+                }
                 renderWeatherResult(data, label);
+                finishAsyncCommand(job);
             })
             .catch(function(error) {
+                if (job.canceled || error.name === 'AbortError') {
+                    return;
+                }
                 writeLine('[error] unable to fetch live weather: ' + error.message, 'error');
+                finishAsyncCommand(job);
             });
     }
 
-    function fetchWeatherByCity(cityName) {
+    function fetchWeatherByCity(cityName, job) {
         var city = (cityName || '').trim();
         if (!city) {
             writeLine('[error] city name is required. try: weather mumbai', 'error');
+            finishAsyncCommand(job);
+            return;
+        }
+
+        if (!job || job.canceled) {
             return;
         }
 
         writeLine('[weather] finding coordinates for ' + city + '...');
 
         var geocodeEndpoint = 'https://geocoding-api.open-meteo.com/v1/search?name=' + encodeURIComponent(city) + '&count=1&language=en&format=json';
-        fetch(geocodeEndpoint)
+        fetch(geocodeEndpoint, {
+            signal: job.controller ? job.controller.signal : undefined
+        })
             .then(function(response) {
                 if (!response.ok) {
                     throw new Error('Geocoding API responded with status ' + response.status);
@@ -1208,6 +1273,9 @@ function initializeUtilityTerminal() {
                 return response.json();
             })
             .then(function(data) {
+                if (job.canceled) {
+                    return;
+                }
                 if (!data || !data.results || !data.results.length) {
                     throw new Error('City not found');
                 }
@@ -1224,50 +1292,70 @@ function initializeUtilityTerminal() {
                 }
                 var label = parts.join(', ');
 
-                fetchWeatherByCoordinates(latitude, longitude, label + ' (' + latitude + ', ' + longitude + ')');
+                fetchWeatherByCoordinates(latitude, longitude, label + ' (' + latitude + ', ' + longitude + ')', job);
             })
             .catch(function(error) {
+                if (job.canceled || error.name === 'AbortError') {
+                    return;
+                }
                 writeLine('[error] unable to resolve city weather: ' + error.message, 'error');
+                finishAsyncCommand(job);
             });
     }
 
-    function promptCityWeatherFallback() {
+    function promptCityWeatherFallback(job) {
+        if (!job || job.canceled) {
+            return;
+        }
         var city = window.prompt('Location permission was denied. Enter a city name to fetch weather:');
         if (!city || !city.trim()) {
             writeLine('[warn] city fallback canceled. you can also run: weather <city>', 'line-warn');
+            finishAsyncCommand(job);
             return;
         }
-        fetchWeatherByCity(city);
+        fetchWeatherByCity(city, job);
     }
 
-    function fetchCurrentLocationWeather() {
+    function fetchCurrentLocationWeather(job) {
+        if (!job || job.canceled) {
+            return;
+        }
         if (!navigator.geolocation) {
             writeLine('[warn] geolocation is not available in this browser.', 'line-warn');
-            promptCityWeatherFallback();
+            promptCityWeatherFallback(job);
             return;
         }
 
         writeLine('[weather] locating your device...');
 
         navigator.geolocation.getCurrentPosition(function(position) {
+            if (job.canceled) {
+                return;
+            }
             var latitude = Number(position.coords.latitude).toFixed(4);
             var longitude = Number(position.coords.longitude).toFixed(4);
-            fetchWeatherByCoordinates(latitude, longitude, latitude + ', ' + longitude);
+            fetchWeatherByCoordinates(latitude, longitude, latitude + ', ' + longitude, job);
         }, function(error) {
+            if (job.canceled) {
+                return;
+            }
             if (error && error.code === 1) {
                 writeLine('[warn] location permission denied. switching to city fallback.', 'line-warn');
-                promptCityWeatherFallback();
+                promptCityWeatherFallback(job);
                 return;
             }
             if (error && error.code === 2) {
                 writeLine('[error] location unavailable right now. please try again in a moment.', 'error');
+                finishAsyncCommand(job);
                 return;
             }
             if (error && error.code === 3) {
                 writeLine('[error] location request timed out. please try again.', 'error');
+                finishAsyncCommand(job);
                 return;
             }
             writeLine('[error] could not read your location.', 'error');
+            finishAsyncCommand(job);
         }, {
             enableHighAccuracy: false,
             timeout: 10000,
@@ -1500,12 +1588,18 @@ function initializeUtilityTerminal() {
             return;
         }
         if (command === 'weather') {
-            fetchCurrentLocationWeather();
+            var weatherCurrentJob = startAsyncCommand('weather');
+            if (weatherCurrentJob) {
+                fetchCurrentLocationWeather(weatherCurrentJob);
+            }
             return;
         }
         if (command.indexOf('weather ') === 0) {
             var cityQuery = raw.replace(/^weather\s+/i, '').trim();
-            fetchWeatherByCity(cityQuery);
+            var weatherCityJob = startAsyncCommand('weather ' + cityQuery);
+            if (weatherCityJob) {
+                fetchWeatherByCity(cityQuery, weatherCityJob);
+            }
             return;
         }
         if (command === 'time') {
@@ -1658,6 +1752,15 @@ function initializeUtilityTerminal() {
     document.addEventListener('mouseup', stopDrag);
 
     document.addEventListener('keydown', function(event) {
+        if ((event.ctrlKey || event.metaKey) && !event.altKey && event.key.toLowerCase() === 'c') {
+            if (shouldAutoCaptureTyping() && interruptActiveCommand()) {
+                event.preventDefault();
+                focusInput();
+                setInputValue('');
+            }
+            return;
+        }
+
         if (event.key === 'Escape' && !panel.hidden) {
             closePanel();
             return;
