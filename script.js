@@ -69,6 +69,7 @@ function initializeBootShell() {
     var remoteOpenCommand = 'ssh portfolio@aryan.dev -p 2220';
     var remotePassword = 'greetings3000';
     var awaitingRemotePassword = false;
+    var hasRemoteSession = false;
     var openCommands = [
         remoteOpenCommand,
         'sudo open the app -y',
@@ -280,15 +281,14 @@ function initializeBootShell() {
         enqueueLine('[help] available commands:');
         enqueueLine('  help, status, clear, about');
         enqueueLine('  themes, modes');
+        enqueueLine('  login first: ' + remoteOpenCommand);
         enqueueLine('  goto/go/open/cd <home|about|services|portfolio|contact>');
         enqueueLine('  set theme <editorial|futuristic|minimal>');
         enqueueLine('  set mode <full|balanced|lite>');
-        enqueueLine('  ' + remoteOpenCommand);
         enqueueLine('  password: ' + remotePassword);
         paintSuggestions([
             'themes',
             'modes',
-            'goto services',
             'set theme futuristic',
             'set mode full',
             remoteOpenCommand
@@ -331,6 +331,15 @@ function initializeBootShell() {
         enqueueLine('[status] theme=' + activeTheme() + ', mode=' + getPerformanceMode());
     }
 
+    function ensureRemoteSession() {
+        if (hasRemoteSession) {
+            return true;
+        }
+        enqueueLine('[error] login required. run "' + remoteOpenCommand + '" first.', 'error');
+        paintSuggestions([remoteOpenCommand, 'help']);
+        return false;
+    }
+
     function handleCommand(rawCommand) {
         var command = normalize(rawCommand);
         if (!command) {
@@ -341,6 +350,7 @@ function initializeBootShell() {
             enqueueLine('password: ' + new Array((rawCommand || '').length + 1).join('*'));
             if ((rawCommand || '').trim() === remotePassword) {
                 awaitingRemotePassword = false;
+                hasRemoteSession = true;
                 setPrompt(false);
                 enqueueLine('[auth] access granted. opening portfolio shell ...');
                 openPortfolio();
@@ -371,7 +381,7 @@ function initializeBootShell() {
         }
         if (command === 'about') {
             enqueueLine('[about] built by Aryan Yadav: full-stack, AI, and performance-focused web apps.');
-            paintSuggestions(['help', 'status', 'sudo open the app -y']);
+            paintSuggestions(['help', 'status', remoteOpenCommand]);
             return;
         }
         if (command === 'clear') {
@@ -390,17 +400,27 @@ function initializeBootShell() {
         }
         var sectionFromCommand = parseSectionFromCommand(command);
         if (sectionFromCommand) {
+            if (!ensureRemoteSession()) {
+                return;
+            }
             enqueueLine('[ok] preparing jump to #' + sectionFromCommand + ' ...');
             openPortfolio(sectionFromCommand);
             return;
         }
         if (command === normalize(remoteOpenCommand)) {
+            if (hasRemoteSession) {
+                enqueueLine('[auth] session already verified.');
+                return;
+            }
             awaitingRemotePassword = true;
             setPrompt(true);
             enqueueLine('[auth] remote endpoint: aryan.dev:2220');
             return;
         }
         if (openCommands.indexOf(command) !== -1) {
+            if (!ensureRemoteSession()) {
+                return;
+            }
             openPortfolio();
             return;
         }
