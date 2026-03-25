@@ -28,8 +28,10 @@
                 <div class="boot-suggestions" id="boot-suggestions" aria-label="Helpful command suggestions"></div>
                 <form class="boot-form" id="boot-form" autocomplete="off">
                     <label for="boot-command" class="boot-prompt">visitor@portfolio:~$</label>
-                    <span id="boot-command" class="boot-command" contenteditable="true" role="textbox" aria-label="Startup terminal command input" spellcheck="false"></span>
-                    <span class="boot-inline-cursor" aria-hidden="true">_</span>
+                    <span class="boot-inline-wrap">
+                        <span id="boot-command" class="boot-command" contenteditable="true" role="textbox" aria-label="Startup terminal command input" spellcheck="false"></span>
+                        <span class="boot-inline-cursor" aria-hidden="true">_</span>
+                    </span>
                 </form>
                 <button type="button" class="boot-skip" id="boot-skip">Quick open</button>
             </div>

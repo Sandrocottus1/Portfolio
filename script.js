@@ -49,10 +49,11 @@ function initializeBootShell() {
     var form = document.getElementById('boot-form');
     var promptLabel = form ? form.querySelector('.boot-prompt') : null;
     var input = document.getElementById('boot-command');
+    var inlineCursor = form ? form.querySelector('.boot-inline-cursor') : null;
     var output = document.getElementById('boot-output');
     var suggestions = document.getElementById('boot-suggestions');
     var skip = document.getElementById('boot-skip');
-    if (!shell || !form || !promptLabel || !input || !output || !suggestions || !skip) {
+    if (!shell || !form || !promptLabel || !input || !inlineCursor || !output || !suggestions || !skip) {
         return;
     }
 
@@ -106,6 +107,36 @@ function initializeBootShell() {
         selection.addRange(range);
     }
 
+    function getCaretOffsetInInput(node) {
+        var selection = window.getSelection();
+        if (!selection || !selection.rangeCount) {
+            return getInputValue().length;
+        }
+        if (!node.contains(selection.anchorNode)) {
+            return getInputValue().length;
+        }
+        var range = selection.getRangeAt(0).cloneRange();
+        var preRange = range.cloneRange();
+        preRange.selectNodeContents(node);
+        preRange.setEnd(range.endContainer, range.endOffset);
+        return preRange.toString().length;
+    }
+
+    function syncInlineCursorPosition() {
+        if (!inlineCursor || !input) {
+            return;
+        }
+        var value = getInputValue();
+        var index = getCaretOffsetInInput(input);
+        if (index < 0) {
+            index = 0;
+        }
+        if (index > value.length) {
+            index = value.length;
+        }
+        inlineCursor.style.setProperty('--cursor-index', String(index));
+    }
+
     var actualPasswordInput = '';
 
     function focusInput() {
@@ -114,12 +145,14 @@ function initializeBootShell() {
         }
         input.focus();
         setCaretToEnd(input);
+        syncInlineCursorPosition();
     }
 
     function setInputValue(value) {
         input.textContent = value;
         input.focus();
         setCaretToEnd(input);
+        syncInlineCursorPosition();
     }
 
     function getInputValue() {
@@ -451,6 +484,12 @@ function initializeBootShell() {
             submitBootForm();
             return;
         }
+        if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+            setTimeout(function() {
+                syncInlineCursorPosition();
+            }, 0);
+            return;
+        }
         if (!history.length) {
             return;
         }
@@ -464,6 +503,19 @@ function initializeBootShell() {
             event.preventDefault();
             historyIndex = Math.min(history.length, historyIndex + 1);
             setInputValue(historyIndex === history.length ? '' : history[historyIndex]);
+            return;
+        }
+    });
+
+    input.addEventListener('input', syncInlineCursorPosition);
+    input.addEventListener('keyup', syncInlineCursorPosition);
+    input.addEventListener('click', syncInlineCursorPosition);
+    input.addEventListener('mouseup', syncInlineCursorPosition);
+    input.addEventListener('focus', syncInlineCursorPosition);
+
+    document.addEventListener('selectionchange', function() {
+        if (document.activeElement === input) {
+            syncInlineCursorPosition();
         }
     });
 
@@ -499,6 +551,7 @@ function initializeBootShell() {
 
     paintSuggestions(defaultSuggestions);
     setPrompt(false);
+    syncInlineCursorPosition();
     enqueueLine('[hint] type help to explore interactive commands.');
 }
 

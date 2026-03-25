@@ -471,11 +471,16 @@ body.boot-active{
     text-shadow: 0 0 8px rgba(86, 247, 192, 0.3);
     user-select: none;
 }
-.boot-command{
+.boot-inline-wrap{
+    position: relative;
     display: inline-block;
     flex: 0 1 auto;
     max-width: calc(100% - 2ch);
     min-width: 1ch;
+}
+.boot-command{
+    display: inline-block;
+    width: 100%;
     background: transparent;
     color: #ffd700;
     border: none;
@@ -493,14 +498,16 @@ body.boot-active{
     outline: none;
 }
 .boot-inline-cursor{
-    display: inline-block;
+    position: absolute;
+    left: 0;
+    top: 0;
     color: #56f7c0;
     font-size: 1.35rem;
     line-height: 1;
     font-family: 'IBM Plex Mono', monospace;
     font-weight: 900;
     text-shadow: 0 0 6px rgba(86, 247, 192, 0.4);
-    transform: scaleY(1.9);
+    transform: translateX(calc(var(--cursor-index, 0) * 1ch)) scaleY(1.9);
     transform-origin: center;
     animation: terminalUnderscoreBlink 1s steps(1, end) infinite;
     pointer-events: none;
